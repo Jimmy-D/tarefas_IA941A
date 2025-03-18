@@ -6,10 +6,13 @@ package com.example.tarefas.IA941A;
 
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import ws3dproxy.WS3DProxy;
 import ws3dproxy.model.Creature;
+import ws3dproxy.model.Leaflet;
 
 /**
  *
@@ -87,6 +90,13 @@ public class MainFrame extends javax.swing.JFrame {
         jButton1 = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         GetThingsTextArea = new javax.swing.JTextArea();
+        getLeafletsButton = new javax.swing.JButton();
+        jScrollPane2 = new javax.swing.JScrollPane();
+        Leaflet1TextArea = new javax.swing.JTextArea();
+        jScrollPane3 = new javax.swing.JScrollPane();
+        Leaflet2TextArea = new javax.swing.JTextArea();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        Leaflet3TextArea = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -345,6 +355,25 @@ public class MainFrame extends javax.swing.JFrame {
         GetThingsTextArea.setRows(5);
         jScrollPane1.setViewportView(GetThingsTextArea);
 
+        getLeafletsButton.setText("getLeaflets");
+        getLeafletsButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                getLeafletsButtonActionPerformed(evt);
+            }
+        });
+
+        Leaflet1TextArea.setColumns(20);
+        Leaflet1TextArea.setRows(5);
+        jScrollPane2.setViewportView(Leaflet1TextArea);
+
+        Leaflet2TextArea.setColumns(20);
+        Leaflet2TextArea.setRows(5);
+        jScrollPane3.setViewportView(Leaflet2TextArea);
+
+        Leaflet3TextArea.setColumns(20);
+        Leaflet3TextArea.setRows(5);
+        jScrollPane4.setViewportView(Leaflet3TextArea);
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
@@ -352,7 +381,7 @@ public class MainFrame extends javax.swing.JFrame {
             .addGroup(jPanel5Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 509, Short.MAX_VALUE)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel5Layout.createSequentialGroup()
@@ -369,7 +398,14 @@ public class MainFrame extends javax.swing.JFrame {
                                 .addComponent(jLabel12)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(YMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jButton1))
+                            .addComponent(jButton1)
+                            .addComponent(getLeafletsButton)
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -391,7 +427,14 @@ public class MainFrame extends javax.swing.JFrame {
                 .addComponent(jButton1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(85, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(getLeafletsButton)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addContainerGap(152, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -427,7 +470,7 @@ public class MainFrame extends javax.swing.JFrame {
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(195, Short.MAX_VALUE))
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
         pack();
@@ -685,6 +728,26 @@ public class MainFrame extends javax.swing.JFrame {
         GetThingsTextArea.setText(selectedCreature.getThingsInVision().toString());
     }//GEN-LAST:event_jButton1ActionPerformed
 
+    private String leafletString(Leaflet l) {
+        String ret = "LeafletID: " + l.getID() + "\n";
+        for (Iterator<String> iter = l.getItems().keySet().iterator(); iter.hasNext();) {
+            String str = iter.next(); //jewel color
+            ret = ret + str + " ";
+            //(total number) (collected)
+            ret = ret + l.getItems().get(str)[0] + " ";
+            ret = ret + l.getItems().get(str)[1] + "\n";
+        }
+        ret = ret + " payment= " + l.getPayment() + "\n" + " situation= " + l.getSituation() + " ";
+        return ret;
+    }
+    
+    private void getLeafletsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getLeafletsButtonActionPerformed
+        List<Leaflet> leaflets = selectedCreature.getLeaflets();
+        Leaflet1TextArea.setText(leafletString(leaflets.get(0)));
+        Leaflet2TextArea.setText(leafletString(leaflets.get(1)));
+        Leaflet3TextArea.setText(leafletString(leaflets.get(2)));
+    }//GEN-LAST:event_getLeafletsButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -700,6 +763,9 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JComboBox<String> FoodTypeComboBox;
     private javax.swing.JTextArea GetThingsTextArea;
     private javax.swing.JComboBox<String> JewelTypeComboBox;
+    private javax.swing.JTextArea Leaflet1TextArea;
+    private javax.swing.JTextArea Leaflet2TextArea;
+    private javax.swing.JTextArea Leaflet3TextArea;
     private javax.swing.JButton MoveCreatureButton;
     private javax.swing.JTextField X1BrickTextField;
     private javax.swing.JTextField X2BrickTextField;
@@ -713,6 +779,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTextField YFoodTextField;
     private javax.swing.JTextField YJewelTextField;
     private javax.swing.JTextField YMoveTextField;
+    private javax.swing.JButton getLeafletsButton;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
@@ -733,5 +800,8 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane1;
+    private javax.swing.JScrollPane jScrollPane2;
+    private javax.swing.JScrollPane jScrollPane3;
+    private javax.swing.JScrollPane jScrollPane4;
     // End of variables declaration//GEN-END:variables
 }
