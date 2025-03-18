@@ -4,6 +4,9 @@
  */
 package com.example.tarefas.IA941A;
 
+import java.awt.event.KeyEvent;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import ws3dproxy.WS3DProxy;
 import ws3dproxy.model.Creature;
@@ -15,6 +18,12 @@ import ws3dproxy.model.Creature;
 public class MainFrame extends javax.swing.JFrame {
 
     private App app;
+    private Map<String, Creature> CreaturesMap = new HashMap<String, Creature>();
+    private Creature selectedCreature = null;
+    private boolean leftKeyPressed = false;
+    private boolean upKeyPressed = false;
+    private boolean rightKeyPressed = false;
+    private boolean downKeyPressed = false;
 
     /**
      * Creates new form MainFrame
@@ -67,6 +76,17 @@ public class MainFrame extends javax.swing.JFrame {
         jLabel9 = new javax.swing.JLabel();
         jLabel10 = new javax.swing.JLabel();
         Y2BrickTextField = new javax.swing.JTextField();
+        jPanel5 = new javax.swing.JPanel();
+        MoveCreatureButton = new javax.swing.JButton();
+        CreaturesComboBox = new javax.swing.JComboBox<>();
+        XMoveTextField = new javax.swing.JTextField();
+        jLabel11 = new javax.swing.JLabel();
+        jLabel12 = new javax.swing.JLabel();
+        YMoveTextField = new javax.swing.JTextField();
+        jButton6 = new javax.swing.JButton();
+        jButton1 = new javax.swing.JButton();
+        jScrollPane1 = new javax.swing.JScrollPane();
+        GetThingsTextArea = new javax.swing.JTextArea();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -217,7 +237,6 @@ public class MainFrame extends javax.swing.JFrame {
         jPanel4.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
 
         CreateBrickButton.setText("Create Brick");
-        CreateBrickButton.setActionCommand("Create Brick");
         CreateBrickButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 CreateBrickButtonActionPerformed(evt);
@@ -267,19 +286,112 @@ public class MainFrame extends javax.swing.JFrame {
             jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel4Layout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(CreateBrickButton)
-                    .addComponent(jLabel7)
-                    .addComponent(X1BrickTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8)
-                    .addComponent(Y1BrickTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                         .addComponent(jLabel9)
                         .addComponent(X2BrickTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addComponent(jLabel10)
                         .addComponent(Y2BrickTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(BrickTypeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(BrickTypeComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel4Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(CreateBrickButton)
+                        .addComponent(jLabel7)
+                        .addComponent(X1BrickTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel8)
+                        .addComponent(Y1BrickTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+        jPanel5.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+
+        MoveCreatureButton.setText("Click to move");
+        MoveCreatureButton.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyPressed(java.awt.event.KeyEvent evt) {
+                MoveCreatureButtonKeyPressed(evt);
+            }
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                MoveCreatureButtonKeyReleased(evt);
+            }
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                MoveCreatureButtonKeyTyped(evt);
+            }
+        });
+
+        CreaturesComboBox.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                CreaturesComboBoxActionPerformed(evt);
+            }
+        });
+
+        jLabel11.setText("X:");
+
+        jLabel12.setText("Y:");
+
+        jButton6.setText("Move to:");
+        jButton6.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton6ActionPerformed(evt);
+            }
+        });
+
+        jButton1.setText("Get things in vision");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
+        GetThingsTextArea.setColumns(20);
+        GetThingsTextArea.setRows(5);
+        jScrollPane1.setViewportView(GetThingsTextArea);
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane1)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(CreaturesComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(MoveCreatureButton))
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(jButton6)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel11)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(XMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jLabel12)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(YMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jButton1))
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
+        );
+        jPanel5Layout.setVerticalGroup(
+            jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+            .addGroup(jPanel5Layout.createSequentialGroup()
+                .addContainerGap()
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(CreaturesComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(MoveCreatureButton))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jButton6)
+                    .addComponent(jLabel11)
+                    .addComponent(XMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel12)
+                    .addComponent(YMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton1)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(85, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -296,7 +408,8 @@ public class MainFrame extends javax.swing.JFrame {
                             .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(0, 9, Short.MAX_VALUE)))
+                        .addGap(0, 9, Short.MAX_VALUE))
+                    .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -312,7 +425,9 @@ public class MainFrame extends javax.swing.JFrame {
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(442, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap(195, Short.MAX_VALUE))
         );
 
         pack();
@@ -339,6 +454,11 @@ public class MainFrame extends javax.swing.JFrame {
 
         try {
             Creature c = app.proxy.createCreature(x, y, 0, color);
+            CreaturesComboBox.addItem(c.getName());
+            CreaturesMap.put(c.getName(), c);
+            if (selectedCreature == null) {
+                selectedCreature = c;
+            }
             c.start();
         } catch (Exception e) {
             System.out.println(e);
@@ -435,6 +555,136 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_CreateBrickButtonActionPerformed
 
+    private void MoveCreatureButtonKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_MoveCreatureButtonKeyPressed
+        int keyCode = evt.getKeyCode();
+        switch (keyCode) {
+            case KeyEvent.VK_UP:
+                if (!upKeyPressed) {
+                    try {
+                        selectedCreature.move(20, 20, 0);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                    upKeyPressed = true;
+                }
+                break;
+            case KeyEvent.VK_DOWN:
+                if (!downKeyPressed) {
+                    try {
+                        selectedCreature.move(-20, -20, 0);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                    downKeyPressed = true;
+                }
+                break;
+            case KeyEvent.VK_LEFT:
+                if (!leftKeyPressed) {
+                    try {
+                        selectedCreature.move(20, -20, 0);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                    leftKeyPressed = true;
+                }
+                break;
+            case KeyEvent.VK_RIGHT:
+                if (!rightKeyPressed) {
+                    try {
+                        selectedCreature.move(-20, 20, 0);
+                    } catch (Exception e) {
+                        System.out.println(e);
+                    }
+                    rightKeyPressed = true;
+                }
+                break;
+        }
+    }//GEN-LAST:event_MoveCreatureButtonKeyPressed
+
+    private void CreaturesComboBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CreaturesComboBoxActionPerformed
+        String creatureName = (String) CreaturesComboBox.getSelectedItem();
+        Creature c = CreaturesMap.get(creatureName);
+        selectedCreature = c;
+        try {
+            c.start();
+        } catch (Exception e) {
+            System.out.println();
+        }
+    }//GEN-LAST:event_CreaturesComboBoxActionPerformed
+
+    private void MoveCreatureButtonKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_MoveCreatureButtonKeyTyped
+
+    }//GEN-LAST:event_MoveCreatureButtonKeyTyped
+
+    private void MoveCreatureButtonKeyReleased(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_MoveCreatureButtonKeyReleased
+        int keyCode = evt.getKeyCode();
+        switch (keyCode) {
+            case KeyEvent.VK_UP:
+                try {
+                    selectedCreature.stop();
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+                upKeyPressed = false;
+                break;
+            case KeyEvent.VK_DOWN:
+                try {
+                    selectedCreature.stop();
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+                downKeyPressed = false;
+                break;
+            case KeyEvent.VK_LEFT:
+                try {
+                    selectedCreature.stop();
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+                leftKeyPressed = false;
+                break;
+            case KeyEvent.VK_RIGHT:
+                try {
+                    selectedCreature.stop();
+
+                } catch (Exception e) {
+                    System.out.println(e);
+                }
+                rightKeyPressed = false;
+                break;
+        }
+    }//GEN-LAST:event_MoveCreatureButtonKeyReleased
+
+    private void jButton6ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton6ActionPerformed
+        String sX = XMoveTextField.getText();
+        String sY = YMoveTextField.getText();
+        int x = 0;
+        int y = 0;
+        try {
+            x = Integer.parseInt(sX);
+            y = Integer.parseInt(sY);
+            if (x > app.width || y > app.height) {
+                throw new Exception();
+            }
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+
+        try {
+            selectedCreature.moveto(30, x, y);
+        } catch (Exception e) {
+            System.out.println(e);
+        }
+    }//GEN-LAST:event_jButton6ActionPerformed
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        selectedCreature.updateState();
+        GetThingsTextArea.setText(selectedCreature.getThingsInVision().toString());
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -445,21 +695,30 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton CreateFoodButton;
     private javax.swing.JButton CreateJewelButton;
     private javax.swing.JComboBox<String> CreatureColorComboBox;
+    private javax.swing.JComboBox<String> CreaturesComboBox;
     private javax.swing.JLabel DimesionsLabel;
     private javax.swing.JComboBox<String> FoodTypeComboBox;
+    private javax.swing.JTextArea GetThingsTextArea;
     private javax.swing.JComboBox<String> JewelTypeComboBox;
+    private javax.swing.JButton MoveCreatureButton;
     private javax.swing.JTextField X1BrickTextField;
     private javax.swing.JTextField X2BrickTextField;
     private javax.swing.JTextField XCreatureTextField;
     private javax.swing.JTextField XFoodTextField;
     private javax.swing.JTextField XJewelTextField;
+    private javax.swing.JTextField XMoveTextField;
     private javax.swing.JTextField Y1BrickTextField;
     private javax.swing.JTextField Y2BrickTextField;
     private javax.swing.JTextField YCreatureTextField;
     private javax.swing.JTextField YFoodTextField;
     private javax.swing.JTextField YJewelTextField;
+    private javax.swing.JTextField YMoveTextField;
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
+    private javax.swing.JLabel jLabel11;
+    private javax.swing.JLabel jLabel12;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
@@ -472,5 +731,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JScrollPane jScrollPane1;
     // End of variables declaration//GEN-END:variables
 }
