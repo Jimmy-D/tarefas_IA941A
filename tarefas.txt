@@ -1,0 +1,5 @@
+colocar as informações da criatura
+botao de reabastecer combustivel
+Diminuir velociadade
+tirar start e stop, colocar velocidade zero para parar
+embelezar a bag e os leaflets
