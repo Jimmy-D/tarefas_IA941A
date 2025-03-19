@@ -10,9 +10,13 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import ws3dproxy.CommandExecException;
 import ws3dproxy.WS3DProxy;
 import ws3dproxy.model.Creature;
 import ws3dproxy.model.Leaflet;
+import ws3dproxy.model.Thing;
 
 /**
  *
@@ -97,6 +101,10 @@ public class MainFrame extends javax.swing.JFrame {
         Leaflet2TextArea = new javax.swing.JTextArea();
         jScrollPane4 = new javax.swing.JScrollPane();
         Leaflet3TextArea = new javax.swing.JTextArea();
+        jButton2 = new javax.swing.JButton();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        BagTextArea = new javax.swing.JTextArea();
+        PutItemButton = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -355,7 +363,7 @@ public class MainFrame extends javax.swing.JFrame {
         GetThingsTextArea.setRows(5);
         jScrollPane1.setViewportView(GetThingsTextArea);
 
-        getLeafletsButton.setText("getLeaflets");
+        getLeafletsButton.setText("Get leaflets");
         getLeafletsButton.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 getLeafletsButtonActionPerformed(evt);
@@ -374,6 +382,24 @@ public class MainFrame extends javax.swing.JFrame {
         Leaflet3TextArea.setRows(5);
         jScrollPane4.setViewportView(Leaflet3TextArea);
 
+        jButton2.setText("Get bag");
+        jButton2.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton2ActionPerformed(evt);
+            }
+        });
+
+        BagTextArea.setColumns(20);
+        BagTextArea.setRows(5);
+        jScrollPane5.setViewportView(BagTextArea);
+
+        PutItemButton.setText("Put item in bag");
+        PutItemButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                PutItemButtonActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
@@ -384,6 +410,10 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 509, Short.MAX_VALUE)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(18, 18, 18)
+                                .addComponent(PutItemButton))
                             .addGroup(jPanel5Layout.createSequentialGroup()
                                 .addComponent(CreaturesComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -405,7 +435,8 @@ public class MainFrame extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addComponent(jButton2))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -434,7 +465,15 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(152, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jButton2)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 146, Short.MAX_VALUE)
+                    .addGroup(jPanel5Layout.createSequentialGroup()
+                        .addComponent(PutItemButton)
+                        .addGap(0, 0, Short.MAX_VALUE)))
+                .addContainerGap())
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -469,8 +508,8 @@ public class MainFrame extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel4, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addContainerGap())
         );
 
         pack();
@@ -740,7 +779,7 @@ public class MainFrame extends javax.swing.JFrame {
         ret = ret + " payment= " + l.getPayment() + "\n" + " situation= " + l.getSituation() + " ";
         return ret;
     }
-    
+
     private void getLeafletsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_getLeafletsButtonActionPerformed
         List<Leaflet> leaflets = selectedCreature.getLeaflets();
         Leaflet1TextArea.setText(leafletString(leaflets.get(0)));
@@ -748,10 +787,41 @@ public class MainFrame extends javax.swing.JFrame {
         Leaflet3TextArea.setText(leafletString(leaflets.get(2)));
     }//GEN-LAST:event_getLeafletsButtonActionPerformed
 
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        selectedCreature.updateBag();
+        String bag = selectedCreature.getBag().printBag();
+        if (bag != null) {
+            BagTextArea.setText(bag);
+        }
+    }//GEN-LAST:event_jButton2ActionPerformed
+
+    private String closestItemInVision() {
+        List<Thing> things = selectedCreature.getThingsInVision();
+        String closestThing = null;
+        double distance = 100;
+        for (Thing t : things) {
+            double thingDist = selectedCreature.calculateDistanceTo(t);
+            if (thingDist < distance) {
+                closestThing = t.getName();
+                distance = thingDist;
+            }
+        }
+        return closestThing;
+    }
+
+    private void PutItemButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_PutItemButtonActionPerformed
+        try {
+            selectedCreature.putInSack(closestItemInVision());
+        } catch (CommandExecException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_PutItemButtonActionPerformed
+
     /**
      * @param args the command line arguments
      */
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextArea BagTextArea;
     private javax.swing.JComboBox<String> BrickTypeComboBox;
     private javax.swing.JButton CreateBrickButton;
     private javax.swing.JButton CreateCreatureButton;
@@ -767,6 +837,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTextArea Leaflet2TextArea;
     private javax.swing.JTextArea Leaflet3TextArea;
     private javax.swing.JButton MoveCreatureButton;
+    private javax.swing.JButton PutItemButton;
     private javax.swing.JTextField X1BrickTextField;
     private javax.swing.JTextField X2BrickTextField;
     private javax.swing.JTextField XCreatureTextField;
@@ -781,6 +852,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTextField YMoveTextField;
     private javax.swing.JButton getLeafletsButton;
     private javax.swing.JButton jButton1;
+    private javax.swing.JButton jButton2;
     private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
@@ -803,5 +875,6 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JScrollPane jScrollPane5;
     // End of variables declaration//GEN-END:variables
 }
