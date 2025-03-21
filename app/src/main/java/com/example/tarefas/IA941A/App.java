@@ -27,8 +27,6 @@ public class App {
             height = w.getEnvironmentHeight();
 
             w.reset();
-            World.createDeliverySpot(250, 250);
-
         } catch (Exception e) {
             System.out.println("Erro capturado");
         }
