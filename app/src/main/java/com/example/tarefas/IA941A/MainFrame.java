@@ -4,6 +4,8 @@
  */
 package com.example.tarefas.IA941A;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -12,11 +14,14 @@ import java.util.Map;
 import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.Timer;
 import ws3dproxy.CommandExecException;
+import ws3dproxy.CommandUtility;
 import ws3dproxy.WS3DProxy;
 import ws3dproxy.model.Creature;
 import ws3dproxy.model.Leaflet;
 import ws3dproxy.model.Thing;
+import ws3dproxy.util.Constants;
 
 /**
  *
@@ -39,6 +44,24 @@ public class MainFrame extends javax.swing.JFrame {
         initComponents();
         this.app = app;
         DimesionsLabel.setText("World dimensions - width: " + app.width + "; height: " + app.height);
+
+        ActionListener action = new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                if (selectedCreature != null) {
+                    selectedCreature.updateState();
+                    CreaturePositionTextField.setText(selectedCreature.getPosition().toString());
+                    double orientation = Math.round(1000 * selectedCreature.getPitch()) / 1000;
+                    CreatureOrientationTextField.setText(Double.toString(orientation));
+                    double fuel = Math.round(1000 * selectedCreature.getFuel()) / 1000;
+                    CreatureFuelTextField.setText(Double.toString(fuel));
+                    CreatureScoreTextField.setText(Double.toString(selectedCreature.getAttributes().getScore()));
+                }
+            }
+        };
+        Timer timer = new Timer(1000, action);
+        timer.setRepeats(true);
+        timer.start();
     }
 
     /**
@@ -105,6 +128,12 @@ public class MainFrame extends javax.swing.JFrame {
         jScrollPane5 = new javax.swing.JScrollPane();
         BagTextArea = new javax.swing.JTextArea();
         PutItemButton = new javax.swing.JButton();
+        Refuel = new javax.swing.JButton();
+        jLabel13 = new javax.swing.JLabel();
+        CreaturePositionTextField = new javax.swing.JTextField();
+        CreatureOrientationTextField = new javax.swing.JTextField();
+        CreatureFuelTextField = new javax.swing.JTextField();
+        CreatureScoreTextField = new javax.swing.JTextField();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -361,6 +390,7 @@ public class MainFrame extends javax.swing.JFrame {
 
         GetThingsTextArea.setColumns(20);
         GetThingsTextArea.setRows(5);
+        GetThingsTextArea.setEnabled(false);
         jScrollPane1.setViewportView(GetThingsTextArea);
 
         getLeafletsButton.setText("Get leaflets");
@@ -400,6 +430,23 @@ public class MainFrame extends javax.swing.JFrame {
             }
         });
 
+        Refuel.setText("Refuel");
+        Refuel.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                RefuelActionPerformed(evt);
+            }
+        });
+
+        jLabel13.setText("Creature:");
+
+        CreaturePositionTextField.setEditable(false);
+
+        CreatureOrientationTextField.setEditable(false);
+
+        CreatureFuelTextField.setEditable(false);
+
+        CreatureScoreTextField.setEditable(false);
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
@@ -410,24 +457,6 @@ public class MainFrame extends javax.swing.JFrame {
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 509, Short.MAX_VALUE)
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(jPanel5Layout.createSequentialGroup()
-                                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addGap(18, 18, 18)
-                                .addComponent(PutItemButton))
-                            .addGroup(jPanel5Layout.createSequentialGroup()
-                                .addComponent(CreaturesComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(MoveCreatureButton))
-                            .addGroup(jPanel5Layout.createSequentialGroup()
-                                .addComponent(jButton6)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel11)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(XMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(jLabel12)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(YMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addComponent(jButton1)
                             .addComponent(getLeafletsButton)
                             .addGroup(jPanel5Layout.createSequentialGroup()
@@ -436,7 +465,38 @@ public class MainFrame extends javax.swing.JFrame {
                                 .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(jScrollPane4, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(jButton2))
+                            .addComponent(jButton2)
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addGap(42, 42, 42)
+                                .addComponent(PutItemButton))
+                            .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                                .addGroup(jPanel5Layout.createSequentialGroup()
+                                    .addComponent(Refuel)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(CreatureScoreTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(jPanel5Layout.createSequentialGroup()
+                                    .addComponent(jButton6)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jLabel11)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(XMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(jLabel12)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(YMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(CreatureFuelTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(jPanel5Layout.createSequentialGroup()
+                                    .addComponent(MoveCreatureButton)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addComponent(CreatureOrientationTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(jPanel5Layout.createSequentialGroup()
+                                    .addComponent(jLabel13)
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                    .addComponent(CreaturesComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                    .addGap(136, 136, 136)
+                                    .addComponent(CreaturePositionTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 160, javax.swing.GroupLayout.PREFERRED_SIZE))))
                         .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
@@ -446,15 +506,26 @@ public class MainFrame extends javax.swing.JFrame {
                 .addContainerGap()
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(CreaturesComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel13)
+                    .addComponent(CreaturePositionTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(CreatureOrientationTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(MoveCreatureButton))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(CreatureFuelTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton6)
-                    .addComponent(jLabel11)
-                    .addComponent(XMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel12)
-                    .addComponent(YMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel11)
+                        .addComponent(XMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel12)
+                        .addComponent(YMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(CreatureScoreTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(Refuel))
+                .addGap(53, 53, 53)
                 .addComponent(jButton1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 56, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -469,11 +540,10 @@ public class MainFrame extends javax.swing.JFrame {
                 .addComponent(jButton2)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 146, Short.MAX_VALUE)
-                    .addGroup(jPanel5Layout.createSequentialGroup()
+                    .addComponent(jScrollPane5, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel5Layout.createSequentialGroup()
                         .addComponent(PutItemButton)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addGap(34, 34, 34))))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -536,12 +606,12 @@ public class MainFrame extends javax.swing.JFrame {
 
         try {
             Creature c = app.proxy.createCreature(x, y, 0, color);
+            c.start();
             CreaturesComboBox.addItem(c.getName());
             CreaturesMap.put(c.getName(), c);
             if (selectedCreature == null) {
                 selectedCreature = c;
             }
-            c.start();
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -643,7 +713,7 @@ public class MainFrame extends javax.swing.JFrame {
             case KeyEvent.VK_UP:
                 if (!upKeyPressed) {
                     try {
-                        selectedCreature.move(20, 20, 0);
+                        selectedCreature.move(1, 1, 0);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -653,7 +723,7 @@ public class MainFrame extends javax.swing.JFrame {
             case KeyEvent.VK_DOWN:
                 if (!downKeyPressed) {
                     try {
-                        selectedCreature.move(-20, -20, 0);
+                        selectedCreature.move(-1, -1, 0);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -663,7 +733,7 @@ public class MainFrame extends javax.swing.JFrame {
             case KeyEvent.VK_LEFT:
                 if (!leftKeyPressed) {
                     try {
-                        selectedCreature.move(20, -20, 0);
+                        selectedCreature.move(1, -1, 0);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -673,7 +743,7 @@ public class MainFrame extends javax.swing.JFrame {
             case KeyEvent.VK_RIGHT:
                 if (!rightKeyPressed) {
                     try {
-                        selectedCreature.move(-20, 20, 0);
+                        selectedCreature.move(-1, 1, 0);
                     } catch (Exception e) {
                         System.out.println(e);
                     }
@@ -687,11 +757,6 @@ public class MainFrame extends javax.swing.JFrame {
         String creatureName = (String) CreaturesComboBox.getSelectedItem();
         Creature c = CreaturesMap.get(creatureName);
         selectedCreature = c;
-        try {
-            c.start();
-        } catch (Exception e) {
-            System.out.println();
-        }
     }//GEN-LAST:event_CreaturesComboBoxActionPerformed
 
     private void MoveCreatureButtonKeyTyped(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_MoveCreatureButtonKeyTyped
@@ -703,8 +768,7 @@ public class MainFrame extends javax.swing.JFrame {
         switch (keyCode) {
             case KeyEvent.VK_UP:
                 try {
-                    selectedCreature.stop();
-
+                    selectedCreature.move(0, 0, 0);
                 } catch (Exception e) {
                     System.out.println(e);
                 }
@@ -712,8 +776,7 @@ public class MainFrame extends javax.swing.JFrame {
                 break;
             case KeyEvent.VK_DOWN:
                 try {
-                    selectedCreature.stop();
-
+                    selectedCreature.move(0, 0, 0);
                 } catch (Exception e) {
                     System.out.println(e);
                 }
@@ -721,8 +784,7 @@ public class MainFrame extends javax.swing.JFrame {
                 break;
             case KeyEvent.VK_LEFT:
                 try {
-                    selectedCreature.stop();
-
+                    selectedCreature.move(0, 0, 0);
                 } catch (Exception e) {
                     System.out.println(e);
                 }
@@ -730,8 +792,7 @@ public class MainFrame extends javax.swing.JFrame {
                 break;
             case KeyEvent.VK_RIGHT:
                 try {
-                    selectedCreature.stop();
-
+                    selectedCreature.move(0, 0, 0);
                 } catch (Exception e) {
                     System.out.println(e);
                 }
@@ -756,7 +817,7 @@ public class MainFrame extends javax.swing.JFrame {
         }
 
         try {
-            selectedCreature.moveto(30, x, y);
+            selectedCreature.moveto(1, x, y);
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -817,6 +878,21 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_PutItemButtonActionPerformed
 
+    private void RefuelActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RefuelActionPerformed
+//        selectedCreature.updateState();
+//        System.out.println(selectedCreature.getFuel());
+//        try {
+//            selectedCreature.stop();
+//            selectedCreature.getAttributes().setFuel(1000);
+//            selectedCreature.updateState();
+//            selectedCreature.start();
+//        } catch (CommandExecException ex) {
+//            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//        selectedCreature.updateState();
+//        System.out.println(selectedCreature.getFuel());
+    }//GEN-LAST:event_RefuelActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -828,6 +904,10 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JButton CreateFoodButton;
     private javax.swing.JButton CreateJewelButton;
     private javax.swing.JComboBox<String> CreatureColorComboBox;
+    private javax.swing.JTextField CreatureFuelTextField;
+    private javax.swing.JTextField CreatureOrientationTextField;
+    private javax.swing.JTextField CreaturePositionTextField;
+    private javax.swing.JTextField CreatureScoreTextField;
     private javax.swing.JComboBox<String> CreaturesComboBox;
     private javax.swing.JLabel DimesionsLabel;
     private javax.swing.JComboBox<String> FoodTypeComboBox;
@@ -838,6 +918,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTextArea Leaflet3TextArea;
     private javax.swing.JButton MoveCreatureButton;
     private javax.swing.JButton PutItemButton;
+    private javax.swing.JButton Refuel;
     private javax.swing.JTextField X1BrickTextField;
     private javax.swing.JTextField X2BrickTextField;
     private javax.swing.JTextField XCreatureTextField;
@@ -858,6 +939,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel10;
     private javax.swing.JLabel jLabel11;
     private javax.swing.JLabel jLabel12;
+    private javax.swing.JLabel jLabel13;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
