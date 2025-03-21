@@ -1,6 +1,4 @@
-colocar as informações da criatura
 botao de reabastecer combustivel
 embelezar a bag e os leaflets
-trocar arquivos para os do ws3dapp
 Criar botão de delivery spot
 
