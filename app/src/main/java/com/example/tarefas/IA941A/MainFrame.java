@@ -188,6 +188,7 @@ public class MainFrame extends javax.swing.JFrame {
         CollectedTextFieldYellow = new javax.swing.JTextField();
         CollectedTextFieldMagenta = new javax.swing.JTextField();
         CollectedTextFieldWhite = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
         jPanel6 = new javax.swing.JPanel();
         CreateJewelButton1 = new javax.swing.JButton();
         XDelivTextField = new javax.swing.JTextField();
@@ -511,6 +512,13 @@ public class MainFrame extends javax.swing.JFrame {
 
         jLabel30.setText("Collected:");
 
+        jButton1.setText("Eat food");
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jButton1ActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
@@ -524,7 +532,10 @@ public class MainFrame extends javax.swing.JFrame {
                                 .addComponent(jLabel13)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(CreaturesComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, 120, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addComponent(MoveCreatureButton)
+                            .addGroup(jPanel5Layout.createSequentialGroup()
+                                .addComponent(MoveCreatureButton)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(Refuel))
                             .addGroup(jPanel5Layout.createSequentialGroup()
                                 .addComponent(jButton6)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -536,9 +547,9 @@ public class MainFrame extends javax.swing.JFrame {
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                                 .addComponent(YMoveTextField, javax.swing.GroupLayout.PREFERRED_SIZE, 40, javax.swing.GroupLayout.PREFERRED_SIZE))
                             .addGroup(jPanel5Layout.createSequentialGroup()
-                                .addComponent(Refuel)
+                                .addComponent(PutItemButton)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(PutItemButton)))
+                                .addComponent(jButton1)))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                             .addComponent(jLabel17, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
@@ -646,7 +657,9 @@ public class MainFrame extends javax.swing.JFrame {
                             .addComponent(CreaturesComboBox, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                             .addComponent(jLabel13))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(MoveCreatureButton)
+                        .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(MoveCreatureButton)
+                            .addComponent(Refuel))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
@@ -657,8 +670,8 @@ public class MainFrame extends javax.swing.JFrame {
                             .addComponent(jButton6))
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(Refuel)
-                            .addComponent(PutItemButton)))
+                            .addComponent(PutItemButton)
+                            .addComponent(jButton1)))
                     .addGroup(jPanel5Layout.createSequentialGroup()
                         .addGroup(jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(CreaturePositionTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -1233,6 +1246,28 @@ public class MainFrame extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_CreateJewelButton1ActionPerformed
 
+    private String closestFoodInVision() {
+        List<Thing> things = selectedCreature.getThingsInVision();
+        String closestThing = null;
+        double distance = 100;
+        for (Thing t : things) {
+            double thingDist = selectedCreature.calculateDistanceTo(t);
+            if (thingDist < distance && (t.getCategory() == 21 || t.getCategory() == 22)) {
+                closestThing = t.getName();
+                distance = thingDist;
+            }
+        }
+        return closestThing;
+    }
+
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+        try {
+            selectedCreature.eatIt(closestFoodInVision());
+        } catch (CommandExecException ex) {
+            Logger.getLogger(MainFrame.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
     /**
      * @param args the command line arguments
      */
@@ -1301,6 +1336,7 @@ public class MainFrame extends javax.swing.JFrame {
     private javax.swing.JTextField YFoodTextField;
     private javax.swing.JTextField YJewelTextField;
     private javax.swing.JTextField YMoveTextField;
+    private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton6;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel10;
