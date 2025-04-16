@@ -54,6 +54,8 @@ public class SoarBridge
     public Creature c;
     public String input_link_string = "";
     public String output_link_string = "";
+    
+    List<Thing> seenFoods = new ArrayList();
 
     /**
      * Constructor class
@@ -168,13 +170,18 @@ public class SoarBridge
               List<Thing> thingsList = (List<Thing>) c.getThingsInVision();
               for (Thing t : thingsList) 
                 {
+                 String itemType = getItemType(t.getCategory());
+                 if(itemType == "FOOD") {
+                     addSeenFood(t);
+                 }
+                 
                  Identifier entity = CreateIdWME(visual, "ENTITY");
                  CreateFloatWME(entity, "DISTANCE", GetGeometricDistanceToCreature(t.getX1(),t.getY1(),t.getX2(),t.getY2(),c.getPosition().getX(),c.getPosition().getY()));                                                    
                  CreateFloatWME(entity, "X", t.getX1());
                  CreateFloatWME(entity, "Y", t.getY1());
                  CreateFloatWME(entity, "X2", t.getX2());
                  CreateFloatWME(entity, "Y2", t.getY2());
-                 CreateStringWME(entity, "TYPE", getItemType(t.getCategory()));
+                 CreateStringWME(entity, "TYPE", itemType);
                  CreateStringWME(entity, "NAME", t.getName());
                  CreateStringWME(entity, "COLOR",Constants.getColorName(t.getMaterial().getColor()));                                                    
                 }
@@ -184,6 +191,21 @@ public class SoarBridge
         {
             logger.severe("Error while Preparing Input Link");
             e.printStackTrace();
+        }
+    }
+    
+    private void addSeenFood(Thing food) {
+        if(!seenFoods.contains(food)) {
+            seenFoods.add(food);
+        }
+    }
+    
+    private void removeSeenFood(String foodName) {
+        for(Thing food : seenFoods)  {
+            if(food.getName().equals(foodName)) {
+                seenFoods.remove(food);
+                break;
+            }
         }
     }
 
@@ -469,7 +491,9 @@ public class SoarBridge
     {
         if (soarCommandEat != null)
         {
-            c.eatIt(soarCommandEat.getThingName());
+            String foodName = soarCommandEat.getThingName();
+            c.eatIt(foodName);
+            removeSeenFood(foodName);
         }
         else
         {
