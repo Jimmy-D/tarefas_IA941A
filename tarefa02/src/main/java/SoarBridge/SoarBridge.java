@@ -8,8 +8,10 @@ package SoarBridge;
 import Simulation.Environment;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
 import org.jsoar.kernel.Agent;
@@ -55,7 +57,7 @@ public class SoarBridge
     public String input_link_string = "";
     public String output_link_string = "";
     
-    List<Thing> seenFoods = new ArrayList();
+    Map<String, Thing> seenThings = new HashMap();
 
     /**
      * Constructor class
@@ -170,21 +172,19 @@ public class SoarBridge
               List<Thing> thingsList = (List<Thing>) c.getThingsInVision();
               for (Thing t : thingsList) 
                 {
-                 String itemType = getItemType(t.getCategory());
-                 if(itemType == "FOOD") {
-                     addSeenFood(t);
-                 }
-                 
+                 addSeenThing(t);
+                }
+              for (Thing t : seenThings.values()) {
                  Identifier entity = CreateIdWME(visual, "ENTITY");
                  CreateFloatWME(entity, "DISTANCE", GetGeometricDistanceToCreature(t.getX1(),t.getY1(),t.getX2(),t.getY2(),c.getPosition().getX(),c.getPosition().getY()));                                                    
                  CreateFloatWME(entity, "X", t.getX1());
                  CreateFloatWME(entity, "Y", t.getY1());
                  CreateFloatWME(entity, "X2", t.getX2());
                  CreateFloatWME(entity, "Y2", t.getY2());
-                 CreateStringWME(entity, "TYPE", itemType);
+                 CreateStringWME(entity, "TYPE", getItemType(t.getCategory()));
                  CreateStringWME(entity, "NAME", t.getName());
-                 CreateStringWME(entity, "COLOR",Constants.getColorName(t.getMaterial().getColor()));                                                    
-                }
+                 CreateStringWME(entity, "COLOR",Constants.getColorName(t.getMaterial().getColor()));  
+              }
             }
         }
         catch (Exception e)
@@ -194,18 +194,18 @@ public class SoarBridge
         }
     }
     
-    private void addSeenFood(Thing food) {
-        if(!seenFoods.contains(food)) {
-            seenFoods.add(food);
+    private void addSeenThing(Thing thing) {
+        String name = thing.getName();
+        if(!seenThings.containsKey(name)) {
+            seenThings.put(name, thing);
+            System.out.println("ADD: " + seenThings.keySet());
         }
     }
     
-    private void removeSeenFood(String foodName) {
-        for(Thing food : seenFoods)  {
-            if(food.getName().equals(foodName)) {
-                seenFoods.remove(food);
-                break;
-            }
+    private void removeSeenThing(String thingName) {
+        if(seenThings.containsKey(thingName)) {
+            seenThings.remove(thingName);
+            System.out.println("REMOVE: " + seenThings.keySet());
         }
     }
 
@@ -475,7 +475,9 @@ public class SoarBridge
     {
         if (soarCommandGet != null)
         {
-            c.putInSack(soarCommandGet.getThingName());
+            String thingName = soarCommandGet.getThingName();
+            c.putInSack(thingName);
+            removeSeenThing(thingName);
         }
         else
         {
@@ -491,9 +493,9 @@ public class SoarBridge
     {
         if (soarCommandEat != null)
         {
-            String foodName = soarCommandEat.getThingName();
-            c.eatIt(foodName);
-            removeSeenFood(foodName);
+            String thingName = soarCommandEat.getThingName();
+            c.eatIt(thingName);
+            removeSeenThing(thingName);
         }
         else
         {
