@@ -29,6 +29,7 @@ import org.jsoar.util.commands.SoarCommands;
 import ws3dproxy.CommandExecException;
 import ws3dproxy.CommandUtility;
 import ws3dproxy.model.Creature;
+import ws3dproxy.model.Leaflet;
 import ws3dproxy.model.Thing;
 import ws3dproxy.util.Constants;
 
@@ -185,6 +186,20 @@ public class SoarBridge
                  CreateStringWME(entity, "NAME", t.getName());
                  CreateStringWME(entity, "COLOR",Constants.getColorName(t.getMaterial().getColor()));  
               }
+
+              for (Leaflet l : c.getLeaflets()) {
+                  Identifier leaflet = CreateIdWME(creature, "LEAFLET");
+                  CreateFloatWME(leaflet, "ID", l.getID());
+                  CreateFloatWME(leaflet, "PAYMENT", l.getPayment());
+                  CreateFloatWME(leaflet, "SITUATION", l.getSituation());
+                  for (Iterator<String> iter = l.getItems().keySet().iterator(); iter.hasNext();) {
+                    String color = iter.next();
+                    int needed = l.getItems().get(color)[0];
+                    Identifier item = CreateIdWME(leaflet, "ITEM");
+                    CreateStringWME(item, "COLOR", color);
+                    CreateFloatWME(item, "NEEDED", needed);
+                  }
+              }
             }
         }
         catch (Exception e)
@@ -198,14 +213,12 @@ public class SoarBridge
         String name = thing.getName();
         if(!seenThings.containsKey(name)) {
             seenThings.put(name, thing);
-            System.out.println("ADD: " + seenThings.keySet());
         }
     }
     
     private void removeSeenThing(String thingName) {
         if(seenThings.containsKey(thingName)) {
             seenThings.remove(thingName);
-            System.out.println("REMOVE: " + seenThings.keySet());
         }
     }
 
