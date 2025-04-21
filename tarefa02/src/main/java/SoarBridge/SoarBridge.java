@@ -132,6 +132,10 @@ public class SoarBridge
             case Constants.categoryCREATURE:
                 itemType = "CREATURE";
                 break;
+            case Constants.categoryDeliverySPOT:
+                itemType = "DELIVERY";
+                break;
+                
         }
         return itemType;
     }
@@ -189,7 +193,7 @@ public class SoarBridge
 
               for (Leaflet l : c.getLeaflets()) {
                   Identifier leaflet = CreateIdWME(creature, "LEAFLET");
-                  CreateFloatWME(leaflet, "ID", l.getID());
+                  CreateStringWME(leaflet, "ID", l.getID().toString());
                   CreateFloatWME(leaflet, "PAYMENT", l.getPayment());
                   CreateFloatWME(leaflet, "SITUATION", l.getSituation());
                   for (Iterator<String> iter = l.getItems().keySet().iterator(); iter.hasNext();) {
@@ -360,6 +364,17 @@ public class SoarBridge
                                 commandList.add(command);
                             }
                             break;
+                        case DELIVER:
+                            String thingNameToDeliver = null;
+                            command = new Command(Command.CommandType.DELIVER);
+                            CommandDeliver commandDeliver = (CommandDeliver)command.getCommandArgument();
+                            if (commandDeliver != null)
+                            {
+                                thingNameToDeliver = GetParameterValue("ID");
+                                if (thingNameToDeliver != null) commandDeliver.setThingName(thingNameToDeliver);
+                                commandList.add(command);
+                            }
+                            break;
 
                         default:
                             break;
@@ -447,6 +462,10 @@ public class SoarBridge
                     case EAT:
                         processEatCommand((CommandEat)command.getCommandArgument());
                     break;
+                    
+                    case DELIVER:
+                        processDeliverCommand((CommandDeliver)command.getCommandArgument());
+                    break;
 
                     default:System.out.println("Nenhum comando definido ...");
                         // Do nothing
@@ -513,6 +532,18 @@ public class SoarBridge
         else
         {
             logger.severe("Error processing processMoveCommand");
+        }
+    }
+    
+    private void processDeliverCommand(CommandDeliver soarCommandDeliver) throws CommandExecException
+    {
+        if (soarCommandDeliver != null)
+        {
+            c.deliverLeaflet(soarCommandDeliver.getThingName());
+        }
+        else
+        {
+            logger.severe("Error processing processDeliverCommand");
         }
     }
     

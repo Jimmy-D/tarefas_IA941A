@@ -33,6 +33,7 @@ public class Environment
         c = proxy.createCreature(100,100,0,1);
         c.start();
         w.grow(1);
+        w.createDeliverySpot(400, 300);
 
         if (prepareEnviromentAndStartGame)
         {
