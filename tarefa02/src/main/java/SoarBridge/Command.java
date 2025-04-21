@@ -16,7 +16,8 @@ public class Command
         MOVE,
         GET,
         EAT,
-        DELIVER
+        DELIVER,
+        HIDE
     }
 
     private CommandType commandType;
@@ -48,6 +49,10 @@ public class Command
                
             case DELIVER:
                 commandArgument = new CommandDeliver();
+                break;
+                
+            case HIDE:
+                commandArgument = new CommandHide();
                 break;
 
             default:

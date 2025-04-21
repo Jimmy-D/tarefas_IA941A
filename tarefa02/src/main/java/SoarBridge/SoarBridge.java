@@ -375,6 +375,17 @@ public class SoarBridge
                                 commandList.add(command);
                             }
                             break;
+                        case HIDE:
+                            String thingNameToHide = null;
+                            command = new Command(Command.CommandType.HIDE);
+                            CommandHide commandHide = (CommandHide)command.getCommandArgument();
+                            if (commandHide != null)
+                            {
+                                thingNameToHide = GetParameterValue("Name");
+                                if (thingNameToHide != null) commandHide.setThingName(thingNameToHide);
+                                commandList.add(command);
+                            }
+                            break;
 
                         default:
                             break;
@@ -466,6 +477,10 @@ public class SoarBridge
                     case DELIVER:
                         processDeliverCommand((CommandDeliver)command.getCommandArgument());
                     break;
+                    
+                    case HIDE:
+                        processHideCommand((CommandHide)command.getCommandArgument());
+                    break;
 
                     default:System.out.println("Nenhum comando definido ...");
                         // Do nothing
@@ -544,6 +559,20 @@ public class SoarBridge
         else
         {
             logger.severe("Error processing processDeliverCommand");
+        }
+    }
+    
+    private void processHideCommand(CommandHide soarCommandHide) throws CommandExecException
+    {
+        if (soarCommandHide != null)
+        {
+            String thingName = soarCommandHide.getThingName();
+            c.hideIt(thingName);
+            removeSeenThing(thingName);
+        }
+        else
+        {
+            logger.severe("Error processing processHideCommand");
         }
     }
     
