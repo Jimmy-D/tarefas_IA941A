@@ -28,6 +28,7 @@ import org.jsoar.runtime.ThreadedAgent;
 import org.jsoar.util.commands.SoarCommands;
 import ws3dproxy.CommandExecException;
 import ws3dproxy.CommandUtility;
+import ws3dproxy.model.Bag;
 import ws3dproxy.model.Creature;
 import ws3dproxy.model.Leaflet;
 import ws3dproxy.model.Thing;
@@ -140,6 +141,21 @@ public class SoarBridge
         return itemType;
     }
     
+    private float getItemRefuel(int categoryType)
+    {
+        float itemRefuel = 0;
+        switch (categoryType)
+        {
+            case Constants.categoryNPFOOD:
+                itemRefuel = 150;
+                break;
+            case Constants.categoryPFOOD:
+                itemRefuel = 300;
+                break;
+        }
+        return itemRefuel;
+    }
+    
     
     /**
      * Create the WMEs at the InputLink of SOAR
@@ -180,13 +196,17 @@ public class SoarBridge
                  addSeenThing(t);
                 }
               for (Thing t : seenThings.values()) {
+                 String type = getItemType(t.getCategory());
                  Identifier entity = CreateIdWME(visual, "ENTITY");
                  CreateFloatWME(entity, "DISTANCE", GetGeometricDistanceToCreature(t.getX1(),t.getY1(),t.getX2(),t.getY2(),c.getPosition().getX(),c.getPosition().getY()));                                                    
                  CreateFloatWME(entity, "X", t.getX1());
                  CreateFloatWME(entity, "Y", t.getY1());
                  CreateFloatWME(entity, "X2", t.getX2());
                  CreateFloatWME(entity, "Y2", t.getY2());
-                 CreateStringWME(entity, "TYPE", getItemType(t.getCategory()));
+                 CreateStringWME(entity, "TYPE", type);
+                 if(type.equals("FOOD")) {
+                     CreateFloatWME(entity, "REFUEL", getItemRefuel(t.getCategory()));
+                 }
                  CreateStringWME(entity, "NAME", t.getName());
                  CreateStringWME(entity, "COLOR",Constants.getColorName(t.getMaterial().getColor()));  
               }
@@ -204,6 +224,19 @@ public class SoarBridge
                     CreateFloatWME(item, "NEEDED", needed);
                   }
               }
+              
+              c.updateBag();
+              Bag creatureBag = c.getBag();
+              if(creatureBag != null) {
+                Identifier bag = CreateIdWME(creature, "BAG");
+                Map<String, String> bagMap = creatureBag.getMap();
+                CreateFloatWME(bag, "RED", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_RED)));
+                CreateFloatWME(bag, "GREEN", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_GREEN)));
+                CreateFloatWME(bag, "BLUE", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_BLUE)));
+                CreateFloatWME(bag, "YELLOW", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_YELLOW)));
+                CreateFloatWME(bag, "MAGENTA", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_MAGENTA)));
+                CreateFloatWME(bag, "WHITE", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_WHITE)));
+              }              
             }
         }
         catch (Exception e)
