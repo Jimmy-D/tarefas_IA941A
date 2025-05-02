@@ -230,12 +230,12 @@ public class SoarBridge
               if(creatureBag != null) {
                 Identifier bag = CreateIdWME(creature, "BAG");
                 Map<String, String> bagMap = creatureBag.getMap();
-                CreateFloatWME(bag, "RED", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_RED)));
-                CreateFloatWME(bag, "GREEN", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_GREEN)));
-                CreateFloatWME(bag, "BLUE", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_BLUE)));
-                CreateFloatWME(bag, "YELLOW", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_YELLOW)));
-                CreateFloatWME(bag, "MAGENTA", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_MAGENTA)));
-                CreateFloatWME(bag, "WHITE", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_WHITE)));
+                createBagItem(bag, "Red", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_RED)));
+                createBagItem(bag, "Green", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_GREEN)));
+                createBagItem(bag, "Blue", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_BLUE)));
+                createBagItem(bag, "Yellow", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_YELLOW)));
+                createBagItem(bag, "Magenta", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_MAGENTA)));
+                createBagItem(bag, "White", Float.parseFloat(bagMap.get(Constants.TOKEN_BAG_CRYSTAL_WHITE)));
               }              
             }
         }
@@ -244,6 +244,12 @@ public class SoarBridge
             logger.severe("Error while Preparing Input Link");
             e.printStackTrace();
         }
+    }
+    
+    private void createBagItem(Identifier bag, String color, float count) {
+        Identifier item = CreateIdWME(bag, "ITEM");
+        CreateStringWME(item, "COLOR", color);
+        CreateFloatWME(item, "COUNT", count);
     }
     
     private void addSeenThing(Thing thing) {
