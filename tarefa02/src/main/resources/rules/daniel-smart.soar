@@ -8,32 +8,32 @@ epmem --set learning off
 ###################################  WANDER  ###################################
 # This operator will make the agent to walk ahead at the enviroment
 # Propose*wander:
-sp {propose*wander
-   (state <s> ^io.input-link <il>)
--->
-   (<s> ^operator <o> +)
-   (<o> ^name wander)}
+# sp {propose*wander
+#    (state <s> ^io.input-link <il>)
+# -->
+#    (<s> ^operator <o> +)
+#    (<o> ^name wander)}
    
 # Apply*wander:
 # If the wander operator is selected, then generate an output command to it 
-sp {apply*wander
-   (state <s> ^operator <o>
-              ^io <io>)
-   (<io> ^output-link <ol>)
-   (<o> ^name wander)
--->
-   (<ol> ^MOVE <command>)
-   (<command> ^Vel 0)
-   (<command> ^VelR 2)
-   (<command> ^VelL 0)
-}
+# sp {apply*wander
+#    (state <s> ^operator <o>
+#               ^io <io>)
+#    (<io> ^output-link <ol>)
+#    (<o> ^name wander)
+# -->
+#    (<ol> ^MOVE <command>)
+#    (<command> ^Vel 0)
+#    (<command> ^VelR 2)
+#    (<command> ^VelL 0)
+# }
     
 ##############################  MOVE FOOD  #####################################
 # This operator will make the agent go straight to the food
 
 # Propose*move*food:
 sp {propose*move*food
-   (state <s> ^io.input-link <il>)
+   (state <s> ^iocopy.input-link <il>)
    (<il> ^CREATURE <creature>)
    (<creature> ^SENSOR.VISUAL <memory>)
    (<memory> ^ENTITY <entityInMemory>)
@@ -43,13 +43,14 @@ sp {propose*move*food
    (<entityInMemory> ^TYPE FOOD)
    (<entityInMemory> ^X <entityInMemoryPositionX>)
    (<entityInMemory> ^Y <entityInMemoryPositionY>)
+   (<entityInMemory> ^distance <distance>)
    (<entityInMemory> ^NAME <entityInMemoryName>) 
    (<creature> ^PARAMETERS.MINFUEL <minFuel>) 
 -->
    (<s> ^operator <o> +)
    (<o> ^name moveFood)
    (<o> ^parameter <food>)
-   (<food> ^distance (sqrt (+ (* (- <creaturePositionX> <entityInMemoryPositionX>) (- <creaturePositionX> <entityInMemoryPositionX>)) (* (- <creaturePositionY> <entityInMemoryPositionY>) (- <creaturePositionY> <entityInMemoryPositionY>)))))
+   (<food> ^distance <distance>)
    (<food> ^X <entityInMemoryPositionX>)
    (<food> ^Y <entityInMemoryPositionY>)
    (<food> ^NAME <entityInMemoryName>)
@@ -59,7 +60,7 @@ sp {propose*move*food
 # If the move operator is selected, then generate an output command to it 
 sp {apply*move*food
    (state <s> ^operator <o>
-              ^io <io>)
+              ^iocopy <io>)
    (<io> ^input-link <il>)             
    (<io> ^output-link <ol>)
    (<o> ^name moveFood)
@@ -71,13 +72,28 @@ sp {apply*move*food
    (<creature> ^SENSOR.VISUAL <memory>)
    (<memory> ^ENTITY <entityInMemory>)
    (<entityInMemory> ^NAME <entityInMemoryName>)
+   (<creature> ^POSITION <position>)
+   (<position> ^X <px>)
+   (<position> ^Y <py>)
+   (<s> ^plan <p>)
+   (<p> ^step <stepNumber>)
 -->
-   (<ol> ^MOVE <command>)
+   (<position> ^X <px> - 
+               ^X <x>)
+
+   (<position> ^Y <py> - 
+               ^Y <y>)
+
+   (<p> ^step <stepNumber> -)
+   (<p> ^step (+ <stepNumber> 1))
+   (<p> ^<stepNumber> <cm>)
+   (<cm> ^MOVE <command>)
    (<command> ^Vel 1)
    (<command> ^VelR 1)
    (<command> ^VelL 1)
    (<command> ^X <x>)
    (<command> ^Y <y>)
+   (write |MOVE FOOD to X: | <x> | - Y: | <y> (crlf))
    #(halt)
 }
   
@@ -86,37 +102,51 @@ sp {apply*move*food
 
 # Propose*eat*food:
 sp {propose*eat*food
-   (state <s> ^io.input-link <il>)
+   (state <s> ^iocopy.input-link <il>)
    (<il> ^CREATURE <creature>)
    (<creature> ^SENSOR.VISUAL.ENTITY <entity>)
    (<entity> ^TYPE FOOD) 
-   (<entity> ^DISTANCE <foodDistance> < 30)
+   (<entity> ^distance <foodDistance> < 30)
    (<entity> ^NAME <foodName>)
    (<creature> ^SENSOR.VISUAL.ENTITY.NAME <memoryItemName> <foodName>)     
 -->
    (<s> ^operator <o> +)
    (<o> ^name eatFood)
    (<o> ^parameter <food>)
+   (<food> ^distance <foodDistance>)
    (<food> ^NAME <foodName>)
-   (<food> ^DISTANCE <foodDistance>)}
+   (<food> ^distance <foodDistance>)}
    
 # Apply*eat*food:
 # If the move operator is selected, then generate an output command to it 
 sp {apply*eat*food
    (state <s> ^operator <o>
-              ^io <io>)
+              ^iocopy <io>)
    (<io> ^input-link <il>)      
    (<io> ^output-link <ol>)
    (<o> ^name eatFood)
    (<o> ^parameter.NAME <foodName>)
    (<il> ^CREATURE <creature>) 
-   (<creature> ^SENSOR.VISUAL <memory>)
+   (<creature> ^SENSOR <sensor>)
+   (<sensor> ^VISUAL <memory>)
+   (<sensor> ^FUEL <fuel>)
+   (<fuel> ^VALUE <fuelValue>)
    (<memory> ^ENTITY <memoryEntity>)
    (<memoryEntity> ^NAME <memoryEntityName> <foodName>)
+   (<memoryEntity> ^REFUEL <refuel>)
    - (<ol> ^EAT <something>)
+   (<s> ^plan <p>)
+   (<p> ^step <stepNumber>)
 -->
-   (<ol> ^EAT <command>)
+   (<p> ^step <stepNumber> -)
+   (<p> ^step (+ <stepNumber> 1))
+   (<p> ^<stepNumber> <cm>)
+   (<cm> ^EAT <command>)
    (<command> ^Name <foodName>)
+   (<memory> ^ENTITY <memoryEntity> -)
+   (<fuel> ^VALUE <fuelValue> -
+           ^VALUE (+ <fuelValue> <refuel>))
+   (write |EAT FOOD: | <foodName> (crlf))
    #(halt)
 }
   
@@ -125,7 +155,7 @@ sp {apply*eat*food
 
 # Propose*move*jewel:
 sp {propose*move*jewel
-   (state <s> ^io.input-link <il>)
+   (state <s> ^iocopy.input-link <il>)
    (<il> ^CREATURE <creature>)
    (<creature> ^SENSOR.VISUAL <memory>)
    (<memory> ^ENTITY <entityInMemory>)
@@ -135,6 +165,7 @@ sp {propose*move*jewel
    (<entityInMemory> ^TYPE JEWEL)
    (<entityInMemory> ^X <entityInMemoryPositionX>)
    (<entityInMemory> ^Y <entityInMemoryPositionY>)
+   (<entityInMemory> ^distance <distance>)
    (<entityInMemory> ^NAME <entityInMemoryName>)
    (<entityInMemory> ^COLOR <entityInMemoryColor>)   
    (<entityInMemory> ^in-leaflet true)    
@@ -142,7 +173,7 @@ sp {propose*move*jewel
    (<s> ^operator <o> +)
    (<o> ^name moveJewel)
    (<o> ^parameter <jewel>)
-   (<jewel> ^distance (sqrt (+ (* (- <creaturePositionX> <entityInMemoryPositionX>) (- <creaturePositionX> <entityInMemoryPositionX>)) (* (- <creaturePositionY> <entityInMemoryPositionY>) (- <creaturePositionY> <entityInMemoryPositionY>)))))
+   (<jewel> ^distance <distance>)
    (<jewel> ^X <entityInMemoryPositionX>)
    (<jewel> ^Y <entityInMemoryPositionY>)
    (<jewel> ^NAME <entityInMemoryName>)
@@ -152,7 +183,7 @@ sp {propose*move*jewel
 # If the move operator is selected, then generate an output command to it 
 sp {apply*move*jewel
    (state <s> ^operator <o>
-              ^io <io>)
+              ^iocopy <io>)
    (<io> ^input-link <il>)           
    (<io> ^output-link <ol>)
    (<o> ^name moveJewel)
@@ -164,13 +195,27 @@ sp {apply*move*jewel
    (<creature> ^SENSOR.VISUAL <memory>)
    (<memory> ^ENTITY <entityInMemory>)
    (<entityInMemory> ^NAME <entityInMemoryName>)
+   (<creature> ^POSITION <position>)
+   (<position> ^X <px>)
+   (<position> ^Y <py>)
+   (<s> ^plan <p>)
+   (<p> ^step <stepNumber>)
 -->
-   (<ol> ^MOVE <command>)
+   (<p> ^step <stepNumber> -)
+   (<p> ^step (+ <stepNumber> 1))
+   (<p> ^<stepNumber> <cm>)
+   (<cm> ^MOVE <command>)
    (<command> ^Vel 1)
    (<command> ^VelR 1)
    (<command> ^VelL 1)
    (<command> ^X <x>)
    (<command> ^Y <y>)
+   (<position> ^X <px> - 
+               ^X <x>)
+
+   (<position> ^Y <py> - 
+               ^Y <y>)
+   (write |MOVE JEWEL to X: | <x> | - Y: | <y> (crlf))
    #(halt)
 }
 
@@ -179,11 +224,11 @@ sp {apply*move*jewel
 
 # Propose*get*jewel:
 sp {propose*get*jewel
-   (state <s> ^io.input-link <il>)
+   (state <s> ^iocopy.input-link <il>)
    (<il> ^CREATURE <creature>)
    (<creature> ^SENSOR.VISUAL.ENTITY <entity>)
    (<entity> ^TYPE JEWEL) 
-   (<entity> ^DISTANCE <jewelDistance> < 30)
+   (<entity> ^distance <jewelDistance> < 30)
    (<entity> ^NAME <jewelName>)
    (<entity> ^in-leaflet true)
    (<creature> ^SENSOR.VISUAL.ENTITY.NAME <memoryItemName> <jewelName>)     
@@ -192,13 +237,13 @@ sp {propose*get*jewel
    (<o> ^name getJewel)
    (<o> ^parameter <jewel>)
    (<jewel> ^NAME <jewelName>)
-   (<jewel> ^DISTANCE <jewelDistance>)}
+   (<jewel> ^distance <jewelDistance>)}
    
 # Apply*get*jewel:
 # If the move operator is selected, then generate an output command to it 
 sp {apply*get*jewel
    (state <s> ^operator <o>
-              ^io <io>)
+              ^iocopy <io>)
    (<io> ^input-link <il>)      
    (<io> ^output-link <ol>)
    (<o> ^name getJewel)
@@ -208,22 +253,113 @@ sp {apply*get*jewel
    (<memory> ^ENTITY <memoryEntity>)
    (<memoryEntity> ^NAME <memoryEntityName> <jewelName>)
    - (<ol> ^GET <anything>)   # Colocado por Ricardo
+   (<creature> ^BAG.ITEM <bagItem>)
+   (<memoryEntity> ^COLOR <entityColor>)
+   (<bagItem> ^COLOR <entityColor>)
+   (<bagItem> ^COUNT <count>)
+   (<s> ^plan <p>)
+   (<p> ^step <stepNumber>)
 -->
-   (<ol> ^GET <command>)
+   (<p> ^step <stepNumber> -)
+   (<p> ^step (+ <stepNumber> 1))
+   (<p> ^<stepNumber> <cm>)
+   (<cm> ^GET <command>)
    (<command> ^Name <jewelName>)
+   (<bagItem> ^COUNT (+ <count> 1)
+              ^COUNT <count> -)
+   (<memory> ^ENTITY <memoryEntity> -)
+   # (<s> ^remove-jewel-from-leaflet <entityColor>)
+   (write |GET JEWEL: | <jewelName> (crlf))
    #(halt)
 }
+
+# sp {propose*remove*jewel*from*leaflet
+#    (state <s> ^remove-jewel-from-leaflet <entityColor>)
+#    -->
+#    (<s> ^operator <o> + >)
+#    (<o> ^name removeJewelFromLeaflet)
+#    (<o> ^parameter <entityColor>)
+# }
+
+# sp {apply*remove*jewel*from*leaflet
+#    (state <s> ^operator <o>
+#               ^iocopy <io>)
+#    (<io> ^input-link <il>)
+#    (<o> ^name removeJewelFromLeaflet)
+#    (<o> ^parameter <colorToRemove>)
+#    (<il> ^CREATURE <creature>)   
+#    (<creature> ^LEAFLET <leaflet>)
+#    (<leaflet> ^ITEM <leafletItem>)
+#    (<leafletItem> ^NEEDED <leafletNeeded>)
+#    (<leafletItem> ^COLOR <colorToRemove>)   
+#    -->
+#    (write |NEEDED: | <leafletNeeded> (crlf))
+#    (<leafletItem> ^NEEDED <leafletNeeded> -)
+#    (<leafletItem> ^NEEDED (- <leafletNeeded> 1))
+#    (write |REMOVED COLOR: | <colorToRemove> (crlf))
+#    (<s> ^remove-jewel-from-leaflet <colorToRemove> -)
+# }
+
+sp {elaborate*create*left*leaflet
+   (state <s> ^iocopy.input-link <il>)
+   (<il> ^CREATURE <creature>)
+   (<creature> ^LEAFLET <leaflet>)
+   (<leaflet> ^ITEM <leafletItem>)
+   (<creature> ^BAG <bag>)
+   (<bag> ^ITEM <bagItem>)
+   (<leafletItem> ^COLOR <lColor>)
+   (<bagItem> ^COLOR <lColor>)
+   (<leafletItem> ^NEEDED <needed>)
+   (<bagItem> ^COUNT <count>)
+   -->
+   (<leafletItem> ^LEFT (- <needed> <count>))
+}
+
+############################### SET SITUATION  #################################
+
+sp {propose*set*situation
+   (state <s> ^iocopy.input-link <il>)
+   (<il> ^CREATURE <creature>)
+   (<creature> ^LEAFLET <leaflet>)
+   - (<leaflet> ^ITEM.LEFT <needed> > 0)
+   (<leaflet> ^SITUATION 0.0)
+--> 
+   (<s> ^operator <o> + =, >)
+   (<o> ^name setSituation)
+   (<o> ^parameter <leaflet>)
+}
+
+sp {apply*set*situation
+   (state <s> ^iocopy.input-link <il>)
+   (<s> ^operator <o>)
+   (<o> ^name setSituation)
+   (<o> ^parameter <leaflet>)
+   (<leaflet> ^SITUATION <situation>)
+--> 
+   (<leaflet> ^SITUATION <situation> -)
+   (<leaflet> ^SITUATION 1.0)
+   (write |LEAFLET COMPLETED!|)
+}
+
+sp {pref*setSituation*deliverLeaflet
+(state <s> ^operator <o> + 
+                     <o2> +)
+(<o> ^name setSituation)
+(<o2> ^name << deliverLeaflet planSucess >>)
+-->
+(<s> ^operator <o> > <o2>)
+} 
 
 ##############################  HIDE JEWEL  ####################################
 # This operator will make the agent hide the jewel
 
 # Propose*hide*jewel:
 sp {propose*hide*jewel
-   (state <s> ^io.input-link <il>)
+   (state <s> ^iocopy.input-link <il>)
    (<il> ^CREATURE <creature>)
    (<creature> ^SENSOR.VISUAL.ENTITY <entity>)
    (<entity> ^TYPE JEWEL) 
-   (<entity> ^DISTANCE <jewelDistance> < 30)
+   (<entity> ^distance <jewelDistance> < 30)
    (<entity> ^NAME <jewelName>)
    -(<entity> ^in-leaflet true)
    (<creature> ^SENSOR.VISUAL.ENTITY.NAME <memoryItemName> <jewelName>)     
@@ -232,13 +368,13 @@ sp {propose*hide*jewel
    (<o> ^name hideJewel)
    (<o> ^parameter <jewel>)
    (<jewel> ^NAME <jewelName>)
-   (<jewel> ^DISTANCE <jewelDistance>)}
+   (<jewel> ^distance <jewelDistance>)}
    
 # Apply*hide*jewel:
 # If the move operator is selected, then generate an output command to it 
 sp {apply*hide*jewel
    (state <s> ^operator <o>
-              ^io <io>)
+              ^iocopy <io>)
    (<io> ^input-link <il>)      
    (<io> ^output-link <ol>)
    (<o> ^name hideJewel)
@@ -248,16 +384,22 @@ sp {apply*hide*jewel
    (<memory> ^ENTITY <memoryEntity>)
    (<memoryEntity> ^NAME <memoryEntityName> <jewelName>)
    - (<ol> ^HIDE <anything>)   # Colocado por Ricardo
+   (<s> ^plan <p>)
+   (<p> ^step <stepNumber>)
 -->
-   (<ol> ^HIDE <command>)
+   (<p> ^step <stepNumber> -)
+   (<p> ^step (+ <stepNumber> 1))
+   (<p> ^<stepNumber> <cm>)
+   (<cm> ^HIDE <command>)
    (<command> ^Name <jewelName>)
+   (<memory> ^ENTITY <memoryEntity> -)
    #(halt)
 }
 
 ###########################  MOVE TO DELIVERY  #################################
 
 sp {propose*move*delivery
-   (state <s> ^io.input-link <il>)
+   (state <s> ^iocopy.input-link <il>)
    (<il> ^CREATURE <creature>)
    (<creature> ^SENSOR.VISUAL.ENTITY <entityInMemory>)
    (<entityInMemory> ^TYPE DELIVERY)
@@ -271,13 +413,14 @@ sp {propose*move*delivery
    (<o> ^parameter <delivery>)
    (<delivery> ^X <entityInMemoryPositionX>)
    (<delivery> ^Y <entityInMemoryPositionY>)
-   (<delivery> ^NAME <entityInMemoryName>)}
+   (<delivery> ^NAME <entityInMemoryName>)
+   (write |PROPOSE MOVE DELIVERY| (crlf))
+   }
 
 sp {apply*move*delivery
    (state <s> ^operator <o>
-              ^io <io>)
+              ^iocopy <io>)
    (<io> ^input-link <il>)           
-   (<io> ^output-link <ol>)
    (<o> ^name moveDelivery)
    (<o> ^parameter <delivery>)
    (<delivery> ^X <x>)
@@ -287,24 +430,38 @@ sp {apply*move*delivery
    (<creature> ^SENSOR.VISUAL <memory>)
    (<memory> ^ENTITY <entityInMemory>)
    (<entityInMemory> ^NAME <entityInMemoryName>)
+   (<creature> ^POSITION <position>)
+   (<position> ^X <px>)
+   (<position> ^Y <py>)
+   (<s> ^plan <p>)
+   (<p> ^step <stepNumber>)
 -->
-   (<ol> ^MOVE <command>)
+   (<p> ^step <stepNumber> -)
+   (<p> ^step (+ <stepNumber> 1))
+   (<p> ^<stepNumber> <cm>)
+   (<cm> ^MOVE <command>)
    (<command> ^Vel 1)
    (<command> ^VelR 1)
    (<command> ^VelL 1)
    (<command> ^X <x>)
    (<command> ^Y <y>)
+   (<position> ^X <px> - 
+               ^X <x>)
+
+   (<position> ^Y <py> - 
+               ^Y <y>)
+   (write |APPLY MOVE DELIVERY| (crlf))
    #(halt)
 }
 
 ############################  DELIVER LEAFLET  #################################
 
 sp {propose*deliver*leaflet
-   (state <s> ^io.input-link <il>)
+   (state <s> ^iocopy.input-link <il>)
    (<il> ^CREATURE <creature>)
    (<creature> ^SENSOR.VISUAL.ENTITY <entity>)
    (<entity> ^TYPE DELIVERY) 
-   (<entity> ^DISTANCE <deliveryDistance> < 30)
+   (<entity> ^distance <deliveryDistance> < 30)
    (<entity> ^NAME <deliveryName>)
    (<creature> ^SENSOR.VISUAL.ENTITY.NAME <memoryItemName> <deliveryName>) 
    (<creature> ^LEAFLET <leaflet>)
@@ -316,22 +473,32 @@ sp {propose*deliver*leaflet
    (<o> ^name deliverLeaflet)
    (<o> ^parameter <delivery>)
    (<delivery> ^ID <leafletID>)
-   (<delivery> ^DISTANCE <deliveryDistance>)
-   (<delivery> ^payment <payment>)}
+   (<delivery> ^distance <deliveryDistance>)
+   (<delivery> ^payment <payment>)
+   (write |PROPOSE DELIVER LEAFLET| (crlf))
+   }
 
 sp {apply*deliver*leaflet
    (state <s> ^operator <o>
-              ^io <io>)
+              ^iocopy <io>)
    (<io> ^input-link <il>)      
-   (<io> ^output-link <ol>)
    (<o> ^name deliverLeaflet)
    (<o> ^parameter.ID <leafletID>)
    (<il> ^CREATURE <creature>) 
-   (<creature> ^LEAFLET.ID <memoryID> <leafletID>)
+   (<creature> ^LEAFLET <leaflet>)
+   (<leaflet> ^ID <memoryID> <leafletID>)
    - (<ol> ^DELIVER <anything>)   # Colocado por Ricardo
+   (<s> ^plan <p>)
+   (<p> ^step <stepNumber>)
 -->
-   (<ol> ^DELIVER <command>)
+   (<p> ^step <stepNumber> -)
+   (<p> ^step (+ <stepNumber> 1))
+   (<p> ^<stepNumber> <cm>)
+   (<cm> ^DELIVER <command>)
    (<command> ^ID <leafletID>)
+   (<leaflet> ^SITUATION <sit> -)
+   (<leaflet> ^SITUATION 0.0)
+   (<s> ^status sucess)
    #(halt)
 }
   
@@ -339,11 +506,11 @@ sp {apply*deliver*leaflet
 # This operator will make the agent avoid the brick
 # Propose*avoid*brick:
 sp {propose*avoidBrick
-   (state <s> ^io.input-link <il>)
+   (state <s> ^iocopy.input-link <il>)
    (<il> ^CREATURE <creature>)
    (<creature> ^SENSOR.VISUAL.ENTITY <entity>)
    (<entity> ^TYPE BRICK)
-   (<entity> ^DISTANCE <distance> <= 61)      
+   (<entity> ^distance <distance> <= 61)      
 -->
    (<s> ^operator <o> +)     
    (<o> ^name avoidBrick)
@@ -354,12 +521,17 @@ sp {propose*avoidBrick
 # If the move operator is selected, then generate an output command to it 
 sp {apply*avoidBrick
    (state <s> ^operator <o>
-              ^io <io>)
+              ^iocopy <io>)
    (<o> ^name avoidBrick)
    (<o> ^parameter <distance>)              
    (<io> ^output-link <ol>)
+   (<s> ^plan <p>)
+   (<p> ^step <stepNumber>)
 -->
-   (<ol> ^MOVE <command>)
+   (<p> ^step <stepNumber> -)
+   (<p> ^step (+ <stepNumber> 1))
+   (<p> ^<stepNumber> <cm>)
+   (<cm> ^MOVE <command>)
    (<command> ^Vel  0)
    (<command> ^VelR (* 55 (/ <distance>)))
    (<command> ^VelL 0)}
@@ -376,7 +548,8 @@ sp {pref*moveJewel*getJewel
 (<o2> ^name << moveJewel moveFood moveDelivery >>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |moveJewel/moveFood vs getJewel - getJewel wins| (crlf) )} 
+# (write |moveJewel/moveFood vs getJewel - getJewel wins| (crlf) )
+} 
 
 # Get Jewel vs Avoid Brick - getJewel wins
 sp {pref*getJewel*avoidBrick
@@ -386,7 +559,8 @@ sp {pref*getJewel*avoidBrick
 (<o2> ^name avoidBrick)
 -->
 (<s> ^operator <o> > <o2>)
- (write |getJewel vs avoidBrick - getJewel wins| (crlf) )} 
+#  (write |getJewel vs avoidBrick - getJewel wins| (crlf) )
+ } 
 
 # Move Jewel vs Move Jewel - closer distance wins
 sp {pref*moveJewel*moveJewel*less*distance
@@ -398,7 +572,8 @@ sp {pref*moveJewel*moveJewel*less*distance
 (<o>  ^parameter.distance <distance> < <distance2>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |moveJewel vs moveJewel | <distance> | smaller then | <distance2> (crlf) )}
+# (write |moveJewel vs moveJewel | <distance> | smaller then | <distance2> (crlf) )
+}
 
 # Move Jewel vs Move Jewel - equal distances are the same
 sp {pref*moveJewel*moveJewel*equals
@@ -410,7 +585,8 @@ sp {pref*moveJewel*moveJewel*equals
 (<o>  ^parameter.distance <distance> == <distance2>)
 -->
 (<s> ^operator <o> = <o2>)
-(write |moveJewel vs moveJewel | <distance> | equals to | <distance2> (crlf) )} 
+# (write |moveJewel vs moveJewel | <distance> | equals to | <distance2> (crlf) )
+} 
 
 # Get Jewel vs Get Jewel Preferences
 sp {pref*getJewel*getJewel
@@ -422,7 +598,8 @@ sp {pref*getJewel*getJewel
 (<o>  ^parameter.distance <distance> < <distance2>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |getJewel vs getJewel | <distance> | less than | <distance2> (crlf) )} 
+# (write |getJewel vs getJewel | <distance> | less than | <distance2> (crlf) )
+} 
 
 # Get Jewel vs Get Jewel Preferences
 sp {pref*getJewel*getJewel-equals
@@ -434,7 +611,8 @@ sp {pref*getJewel*getJewel-equals
 (<o>  ^parameter.distance <distance> == <distance2>)
 -->
 (<s> ^operator <o> = <o2>)
-(write |getJewel vs getJewel | <distance> | less than | <distance2> (crlf) )} 
+# (write |getJewel vs getJewel | <distance> | less than | <distance2> (crlf) )
+} 
 
 # Get Jewel vs Hide Jewel - getJewel wins
 sp {pref*getJewel*hideJewel
@@ -444,7 +622,8 @@ sp {pref*getJewel*hideJewel
 (<o2> ^name hideJewel)
 -->
 (<s> ^operator <o> > <o2>)
-(write |getJewel vs hideJewel - getJewel wins| (crlf) )} 
+# (write |getJewel vs hideJewel - getJewel wins| (crlf) )
+} 
 
 # Move Jewel or Move Food vs Hide Jewel - hideJewel wins
 sp {pref*moveJewel*hideJewel
@@ -454,7 +633,8 @@ sp {pref*moveJewel*hideJewel
 (<o2> ^name << moveJewel moveFood moveDelivery >>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |moveJewel/moveFood vs hideJewel - hideJewel wins| (crlf) )} 
+# (write |moveJewel/moveFood vs hideJewel - hideJewel wins| (crlf) )
+} 
 
 # Hide Jewel vs Avoid Brick - hideJewel wins
 sp {pref*hideJewel*avoidBrick
@@ -464,7 +644,8 @@ sp {pref*hideJewel*avoidBrick
 (<o2> ^name avoidBrick)
 -->
 (<s> ^operator <o> > <o2>)
- (write |hideJewel vs avoidBrick - hideJewel wins| (crlf) )} 
+#  (write |hideJewel vs avoidBrick - hideJewel wins| (crlf) )
+ } 
 
 # Hide Jewel vs Hide Jewel Preferences
 sp {pref*hideJewel*hideJewel
@@ -476,7 +657,8 @@ sp {pref*hideJewel*hideJewel
 (<o>  ^parameter.distance <distance> < <distance2>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |hideJewel vs hideJewel | <distance> | less than | <distance2> (crlf) )} 
+# (write |hideJewel vs hideJewel | <distance> | less than | <distance2> (crlf) )
+} 
 
 # Hide Jewel vs Hide Jewel Preferences
 sp {pref*hideJewel*hideJewel-equals
@@ -488,7 +670,8 @@ sp {pref*hideJewel*hideJewel-equals
 (<o>  ^parameter.distance <distance> == <distance2>)
 -->
 (<s> ^operator <o> = <o2>)
-(write |hideJewel vs hideJewel | <distance> | less than | <distance2> (crlf) )} 
+# (write |hideJewel vs hideJewel | <distance> | less than | <distance2> (crlf) )
+} 
 
 # FOOD
 
@@ -500,7 +683,8 @@ sp {pref*moveFood*eatFood
 (<o2> ^name << moveFood moveJewel moveDelivery >>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |eatFood vs move{Food/Jewel} - eatFood wins | (crlf) )} 
+# (write |eatFood vs move{Food/Jewel} - eatFood wins | (crlf) )
+} 
 
 # Eat Food vs Avoid Brick
 sp {pref*eatFood*avoidBrick
@@ -510,7 +694,8 @@ sp {pref*eatFood*avoidBrick
 (<o2> ^name avoidBrick)
 -->
 (<s> ^operator <o> > <o2>)
-(write |eatFood vs avoidBrick - eatFood wins| (crlf))} 
+# (write |eatFood vs avoidBrick - eatFood wins| (crlf))
+} 
 
 # Eat Food vs Get/Hide Jewel/Deliver Leaflet
 sp {pref*eatFood*getJewel*hideJewel*deliverLeaflet
@@ -520,7 +705,8 @@ sp {pref*eatFood*getJewel*hideJewel*deliverLeaflet
 (<o2> ^name << getJewel hideJewel deliverLeaflet >>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |eatFood vs get/hide {Jewel} / {deliverLeaflet} - eatFood wins | (crlf) )} 
+# (write |eatFood vs get/hide {Jewel} / {deliverLeaflet} - eatFood wins | (crlf) )
+} 
 
 # Move Food vs Move Food Preferences
 sp {pref*moveFood*moveFood
@@ -532,7 +718,8 @@ sp {pref*moveFood*moveFood
 (<o>  ^parameter.distance <distance> < <distance2>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |moveFood vs moveFood | <distance> | less than | <distance2> (crlf))}
+# (write |moveFood vs moveFood | <distance> | less than | <distance2> (crlf))
+}
 
 # Move Food vs Move Food Preferences
 sp {pref*moveFood*moveFood-equals
@@ -544,7 +731,8 @@ sp {pref*moveFood*moveFood-equals
 (<o>  ^parameter.distance <distance> == <distance2>)
 -->
 (<s> ^operator <o> = <o2>)
-(write |moveFood vs moveFood | <distance> | equals to | <distance2> (crlf) )}
+# (write |moveFood vs moveFood | <distance> | equals to | <distance2> (crlf) )
+}
 
 # Eat Food vs Eat Food Preferences
 sp {pref*eatFood*eatFood-less
@@ -556,7 +744,8 @@ sp {pref*eatFood*eatFood-less
 (<o>  ^parameter.distance <distance> < <distance2>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |eatFood vs eatFood | <distance> | less than | <distance2> (crlf))} 
+# (write |eatFood vs eatFood | <distance> | less than | <distance2> (crlf))
+} 
 
 # Eat Food vs Eat Food Preferences
 sp {pref*eatFood*eatFood-equals
@@ -568,7 +757,8 @@ sp {pref*eatFood*eatFood-equals
 (<o>  ^parameter.distance <distance> == <distance2>)
 -->
 (<s> ^operator <o> = <o2>)
-(write |eatFood vs eatFood | <distance> | equals to | <distance2> (crlf))} 
+# (write |eatFood vs eatFood | <distance> | equals to | <distance2> (crlf))
+} 
 
 # FOOD vs JEWEL
 
@@ -584,7 +774,8 @@ sp {pref*moveFood*moveJewel*moveFoodWins
 (<fuel> ^VALUE <value> < <threshold>)        
 -->
 (<s> ^operator <o> > <o2>)
-(write |moveFood vs moveJewel | <value> | less than | <threshold> (crlf) )} 
+# (write |moveFood vs moveJewel | <value> | less than | <threshold> (crlf) )
+} 
 
 # Move Food vs Move Jewel Preferences - Move Jewel Wins
 sp {pref*moveFood*moveJewel*moveJewelWins
@@ -598,7 +789,8 @@ sp {pref*moveFood*moveJewel*moveJewelWins
 (<fuel> ^VALUE <value> > <threshold>)        
 -->
 (<s> ^operator <o2> > <o>)
-(write |moveFood vs moveJewel | <value> | higher than | <threshold> (crlf) )} 
+# (write |moveFood vs moveJewel | <value> | higher than | <threshold> (crlf) )
+} 
 
 # Move Food vs Move Jewel Preferences - Move Jewel Wins
 sp {pref*moveFood*moveJewel*tie
@@ -612,7 +804,8 @@ sp {pref*moveFood*moveJewel*tie
 (<fuel> ^VALUE <value> <= <threshold>)        
 -->
 (<s> ^operator <o2> = <o>)
-(write |moveFood vs moveJewel | <value> | higher than | <threshold> (crlf) )} 
+# (write |moveFood vs moveJewel | <value> | higher than | <threshold> (crlf) )
+} 
 
 #DELIVERY
 
@@ -624,7 +817,8 @@ sp {pref*moveDelivery*moveDelivery
 (<o2> ^name moveDelivery)
 -->
 (<s> ^operator <o> = <o2>)
-(write |moveDelivery vs moveDelivery - moveDelivery ties| (crlf) )} 
+# (write |moveDelivery vs moveDelivery - moveDelivery ties| (crlf) )
+} 
 
 # Move Delivery vs Move Jewel - Move delivery wins
 sp {pref*moveDelivery*moveJewel
@@ -634,7 +828,8 @@ sp {pref*moveDelivery*moveJewel
 (<o2> ^name moveJewel)
 -->
 (<s> ^operator <o> > <o2>)
-(write |moveDelivery vs moveJewel - moveDelivery wins| (crlf) )} 
+# (write |moveDelivery vs moveJewel - moveDelivery wins| (crlf) )
+} 
 
 # Deliver Leaflet vs Move Delivery
 sp {pref*deliverLeaflet*moveDelivery
@@ -644,7 +839,8 @@ sp {pref*deliverLeaflet*moveDelivery
 (<o2> ^name << moveFood moveJewel moveDelivery >>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |deliverLeaflet vs move{Food/Jewel/Delivery} - deliverLeaflet wins | (crlf) )} 
+# (write |deliverLeaflet vs move{Food/Jewel/Delivery} - deliverLeaflet wins | (crlf) )
+} 
 
 # Deliver Leaflet vs Deliver Leaflet Preferences Wins
 sp {pref*deliverLeaflet*deliverLeaflet*wins
@@ -656,7 +852,8 @@ sp {pref*deliverLeaflet*deliverLeaflet*wins
 (<o>  ^parameter.payment <payment> > <payment2>)
 -->
 (<s> ^operator <o> > <o2>)
-(write |deliverLeaflet vs deliverLeaflet | <payment> | more than | <payment2> (crlf))} 
+# (write |deliverLeaflet vs deliverLeaflet | <payment> | more than | <payment2> (crlf))
+} 
 
 # # Deliver Leaflet vs Deliver Leaflet Preferences Ties
 # sp {pref*deliverLeaflet*deliverLeaflet*ties
@@ -706,25 +903,128 @@ sp {pref*wander
 -->
 (<s> ^operator <o> <)}
 
+sp {halt*condition
+  (state <s> ^impasse no-change ^superstate <ss>)
+  (<ss> ^io.output-link <ol>)
+  (<ss> ^plan <plan>)
+  (<plan> ^0 <command>)
+  (<command> ^<action> <a>)
+-->
+  (<ss> ^status failure)
+  (write |HALT CONDITION| (crlf))
+}
+
 # HALT
 
-sp {halt*condition
-   (state <s> ^io.output-link <ol>)
-   (<ol> ^<attr> <value>)
-   -->
-   (write |The command: | <attr> | was issued! |)
-   (interrupt) 
-}     
+# sp {halt*condition
+#    (state <s> ^io.output-link <ol>)
+#    (<ol> ^<attr> <value>)
+#    -->
+#    (write |The command: | <attr> | was issued! |)
+#    (interrupt) 
+# }     
 
 ##################  ELABORATIONS  ###################
 
 sp {elaborate*in-leaflet
-   (state <s> ^io.input-link <il>)
+   (state <s> ^iocopy.input-link <il>)
    (<il> ^CREATURE <creature>)
    (<creature> ^SENSOR.VISUAL.ENTITY <entity>)
    (<entity> ^COLOR <eColor>)
    (<entity> ^TYPE JEWEL)
-   (<creature> ^LEAFLET.ITEM.COLOR <eColor>)
+   (<creature> ^LEAFLET.ITEM <leafletItem>)
+   (<leafletItem> ^COLOR <eColor>)
+   (<leafletItem> ^LEFT <needed> > 0)
    -->
    (<entity> ^in-leaflet true)
 }
+
+sp {elaborate*calculate*distances
+   (state <s> ^iocopy.input-link <il>)
+   (<il> ^CREATURE <creature>)
+   (<creature> ^SENSOR.VISUAL <memory>)
+   (<memory> ^ENTITY <entityInMemory>)
+   (<creature> ^POSITION <creaturePosition>)
+   (<creaturePosition> ^X <creaturePositionX>)
+   (<creaturePosition> ^Y <creaturePositionY>)
+   (<entityInMemory> ^X <entityInMemoryPositionX>)
+   (<entityInMemory> ^Y <entityInMemoryPositionY>)
+   -->
+   (<entityInMemory> ^distance (sqrt (+ (* (- <creaturePositionX> <entityInMemoryPositionX>) (- <creaturePositionX> <entityInMemoryPositionX>)) (* (- <creaturePositionY> <entityInMemoryPositionY>) (- <creaturePositionY> <entityInMemoryPositionY>)))))
+}
+
+##################  INITIALIZE  ###################
+
+sp {propose*initialize*deep-copy
+   (state <s> ^superstate nil)
+   -(<s> ^iocopy)
+   -(<s> ^plan <p>)
+-->
+   (<s> ^operator <o> + >)
+   (<o> ^name initialize)
+}
+
+sp {apply*initialize*deep-copy
+   (state <s> ^operator.name initialize)
+   (<s> ^io <io>) 
+-->
+   (<s> ^plan <p>)
+   (<p> ^step 0)
+   (<s> ^iocopy (deep-copy <io>))
+}
+
+
+##################  PLAN  ###################
+
+sp {propose*plan*sucess
+   (state <s> ^io.output-link <ol>)
+   (<s> ^status sucess)
+   -->
+   (<s> ^operator <o> + >)
+   (<o> ^name planSucess)
+   (write |PROPOSE PLAN SUCESS| (crlf))
+}
+
+sp {apply*plan*sucess
+    (state <s> ^io.output-link <ol>)
+    (<s> ^operator.name planSucess)
+    (<s> ^plan <plan>)
+    (<plan> ^0 <command>)
+    (<command> ^<action> <a>)
+-->
+    (<ol> ^<action> <a>)
+    (<s> ^status sucess -)
+    (interrupt)
+}
+
+sp {propose*plan*failure
+   (state <s> ^io.output-link <ol>)
+   (<s> ^status failure)
+-->
+   (<s> ^operator <o> + =)
+   (<o> ^name planFail)
+   (write |PROPOSE PLAN FAILURE| (crlf))
+}
+
+
+sp {apply*plan*failure
+    (state <s> ^io.output-link <ol>)
+    (<s> ^operator <o>)
+    (<o> ^name planFail)
+-->
+    (<ol> ^MOVE <COMANDO>)
+    (<COMANDO> ^Vel 0)
+    (<COMANDO> ^VelR 2)
+    (<COMANDO> ^VelL 0)
+    (<s> ^status failure -)
+    (interrupt)
+}
+
+sp {worst*case
+    (state <s> ^impasse no-change ^superstate <ss>)
+    (<ss> ^io.output-link <ol>)
+    (<s> ^plan <plan>)
+    -(<plan> ^0 <command>)
+-->
+   (interrupt)
+} 

@@ -97,6 +97,7 @@ sp {propose*eat*food
    (<s> ^operator <o> +)
    (<o> ^name eatFood)
    (<o> ^parameter <food>)
+   (<food> ^distance <foodDistance>)
    (<food> ^NAME <foodName>)
    (<food> ^DISTANCE <foodDistance>)}
    
@@ -728,3 +729,4 @@ sp {elaborate*in-leaflet
    -->
    (<entity> ^in-leaflet true)
 }
+
