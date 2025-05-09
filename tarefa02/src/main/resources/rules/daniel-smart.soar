@@ -273,33 +273,6 @@ sp {apply*get*jewel
    #(halt)
 }
 
-# sp {propose*remove*jewel*from*leaflet
-#    (state <s> ^remove-jewel-from-leaflet <entityColor>)
-#    -->
-#    (<s> ^operator <o> + >)
-#    (<o> ^name removeJewelFromLeaflet)
-#    (<o> ^parameter <entityColor>)
-# }
-
-# sp {apply*remove*jewel*from*leaflet
-#    (state <s> ^operator <o>
-#               ^iocopy <io>)
-#    (<io> ^input-link <il>)
-#    (<o> ^name removeJewelFromLeaflet)
-#    (<o> ^parameter <colorToRemove>)
-#    (<il> ^CREATURE <creature>)   
-#    (<creature> ^LEAFLET <leaflet>)
-#    (<leaflet> ^ITEM <leafletItem>)
-#    (<leafletItem> ^NEEDED <leafletNeeded>)
-#    (<leafletItem> ^COLOR <colorToRemove>)   
-#    -->
-#    (write |NEEDED: | <leafletNeeded> (crlf))
-#    (<leafletItem> ^NEEDED <leafletNeeded> -)
-#    (<leafletItem> ^NEEDED (- <leafletNeeded> 1))
-#    (write |REMOVED COLOR: | <colorToRemove> (crlf))
-#    (<s> ^remove-jewel-from-leaflet <colorToRemove> -)
-# }
-
 sp {elaborate*create*left*leaflet
    (state <s> ^iocopy.input-link <il>)
    (<il> ^CREATURE <creature>)

@@ -1,1 +1,4 @@
 git clone https://github.com/Jimmy-D/tarefas_IA941A.git
+
+Para rodar o reativo carregar o arquivo daniel.soar
+Para rodar o deliberativo carregar o arquivo daniel-smart.soar
