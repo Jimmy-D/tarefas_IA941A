@@ -18,7 +18,6 @@ namespace ClarionApp
 	/// </summary>
 	public enum CreatureActions
 	{
-		DO_NOTHING,
 		ROTATE_CLOCKWISE,
 		GO_TO_JEWEL,
 		GO_TO_FOOD,
@@ -51,10 +50,10 @@ namespace ClarionApp
 		private double CREATURE_CAN_DELIVER_ACT_VAL = 1.0;
 		private double ALL_JEWELS_COLLECTED_ACT_VAL = 0.9;
 		private double JEWEL_AHEAD_ACT_VAL = 0.8;
-		private double JEWEL_AWAY_ACT_VAL = 0.7;
-		private double FOOD_AHEAD_ACT_VAL = 0.6;
-		private double FOOD_AWAY_ACT_VAL = 0.5;
-		private double WALL_AHEAD_ACT_VAL = 0.3;
+		private double JEWEL_AWAY_ACT_VAL = 0.5;
+		private double FOOD_AHEAD_ACT_VAL = 0.7;
+		private double FOOD_AWAY_ACT_VAL = 0.4;
+		private double WALL_AHEAD_ACT_VAL = 0.6;
 		private double MIN_ACT_VAL = 0.0;
 		#endregion
 
@@ -215,9 +214,6 @@ namespace ClarionApp
 				Console.WriteLine ("\n Action: " + externalAction);
 				switch (externalAction)
 				{
-				case CreatureActions.DO_NOTHING:
-					// Do nothing as the own value says
-					break;
 				case CreatureActions.ROTATE_CLOCKWISE:
 					worldServer.SendSetAngle(creatureId, 2, -2, 2);
 					break;
@@ -342,7 +338,7 @@ namespace ClarionApp
 		/// </summary>
 		/// <param name="sensorialInformation">The information that came from server</param>
 		/// <returns>The perceived information</returns>
-		private SensoryInformation prepareSensoryInformation ()
+		private SensoryInformation prepareSensoryInformation (IList<Thing> listOfThings)
 		{
 			// New sensory information
 			SensoryInformation si = World.NewSensoryInformation (CurrentAgent);
@@ -352,7 +348,8 @@ namespace ClarionApp
 			//double wallAheadActivationValue = wallAhead ? CurrentAgent.Parameters.MAX_ACTIVATION : CurrentAgent.Parameters.MIN_ACTIVATION;
 			//si.Add(inputWallAhead, wallAheadActivationValue);
 			//Console.WriteLine(sensorialInformation);
-			Creature c = memory.creature;
+			Creature c = (Creature)listOfThings.Where (item => (item.CategoryId == Thing.CATEGORY_CREATURE)).First ();
+			memory.creature = c;
 			int n = 0;
 			foreach (Leaflet l in c.getLeaflets ()) {
 				mind.updateLeaflet (n, l);
@@ -367,47 +364,78 @@ namespace ClarionApp
 			double allJewelsCollectedActivationValue = MIN_ACT_VAL;
 			double creatureCanDeliverActivationValue = MIN_ACT_VAL;
 
+			bool actionSelected = false;
+
 			Console.WriteLine ("Activations:");
-			foreach (Thing brick in memory.GetBricks ()) {
-				if (brick.DistanceToCreature <= 50) {
+			if (!actionSelected) {
+				if (memory.deliverySpot != null &&
+					memory.deliverySpot.DistanceToCreature <= 50 &&
+					c.getLeaflets ().Where ((l) => l.situation == true).Any ()) {
+					Console.WriteLine ("\tActivation Deliver");
+					creatureCanDeliverActivationValue = CREATURE_CAN_DELIVER_ACT_VAL;
+					actionSelected = true;
+				}
+			}
+
+			if (!actionSelected) {
+				foreach (Thing jewel in memory.GetJewels ()) {
+					if (jewel.DistanceToCreature <= 50) {
+						Console.WriteLine ("\tActivation get Jewel");
+						jewelAheadActivationValue = JEWEL_AHEAD_ACT_VAL;
+						actionSelected = true;
+					}
+				}
+			}
+
+			if (!actionSelected) {
+				foreach (Thing food in memory.GetFoods ()) {
+					if (food.DistanceToCreature <= 50) {
+						Console.WriteLine ("\tActivation get Food");
+						foodAheadActivationValue = FOOD_AHEAD_ACT_VAL;
+						actionSelected = true;
+					}
+				}
+			}
+
+			if (!actionSelected) {
+				if (listOfThings.Where (item => (item.CategoryId == Thing.CATEGORY_BRICK && item.DistanceToCreature <= 30)).Any ()) {
 					Console.WriteLine ("\tActivation Avoid Brick");
-					wallAheadActivationValue = WALL_AHEAD_ACT_VAL; 
-				 }
-			}
-
-			foreach (Thing jewel in memory.GetJewels ()) {
-				if (jewel.DistanceToCreature <= 50) {
-					Console.WriteLine ("\tActivation get Jewel");
-					jewelAheadActivationValue = JEWEL_AHEAD_ACT_VAL;
+					wallAheadActivationValue = WALL_AHEAD_ACT_VAL;
+					actionSelected = true;
 				}
 			}
 
-			foreach (Thing food in memory.GetFoods ()) {
-				if (food.DistanceToCreature <= 50) {
-					Console.WriteLine ("\tActivation get Food");
-					foodAheadActivationValue = FOOD_AHEAD_ACT_VAL; 
+			if (!actionSelected) {
+				if (memory.GetFoods ().Any () && c.Fuel < 400) {
+					Console.WriteLine ("\tActivation go Food");
+					foodAwayActivationValue = FOOD_AWAY_ACT_VAL;
+					actionSelected = true;
 				}
 			}
 
-			if (memory.GetJewels ().Any ()) {
-				Console.WriteLine ("\tActivation go Jewel");
-				jewelAwayActivationValue = JEWEL_AWAY_ACT_VAL;
+			if (!actionSelected) {
+				if (memory.deliverySpot != null && c.getLeaflets ().Where ((l) => l.situation == true).Any ()) {
+					Console.WriteLine ("\tActivation go Delivery");
+					allJewelsCollectedActivationValue = ALL_JEWELS_COLLECTED_ACT_VAL;
+					actionSelected = true;
+				}
 			}
 
-			if (c.getLeaflets ().Where ((l) => l.situation == true).Any()) {
-				Console.WriteLine ("\tActivation go Delivery");
-				allJewelsCollectedActivationValue = ALL_JEWELS_COLLECTED_ACT_VAL;
+			if (!actionSelected) {
+				if (memory.GetJewels ().Any ()) {
+					Console.WriteLine ("\tActivation go Jewel");
+					jewelAwayActivationValue = JEWEL_AWAY_ACT_VAL;
+					actionSelected = true;
+				}
 			}
 
-			if (memory.GetFoods().Any () && c.Fuel < 400) {
-				Console.WriteLine ("\tActivation Deliver");
-				foodAwayActivationValue = FOOD_AWAY_ACT_VAL;
-			}
-
-			if(memory.deliverySpot != null && 
-			memory.deliverySpot.DistanceToCreature <= 50 && c.getLeaflets ().Where ((l) => l.situation == true).Any ()) {
-				creatureCanDeliverActivationValue = CREATURE_CAN_DELIVER_ACT_VAL;
-			}
+			si.Add (inputWallAhead, wallAheadActivationValue);
+			si.Add (inputJewelAhead, jewelAheadActivationValue);
+			si.Add (inputFoodAhead, foodAheadActivationValue);
+			si.Add (inputJewelAway, jewelAwayActivationValue);
+			si.Add (inputFoodAway, foodAwayActivationValue);
+			si.Add (inputAllJewelsCollected, allJewelsCollectedActivationValue);
+			si.Add (inputCreatureCanDeliver, creatureCanDeliverActivationValue);
 
 			return si;
         }
@@ -417,14 +445,16 @@ namespace ClarionApp
         private double FixedRuleToAvoidCollisionWall(ActivationCollection currentInput, Rule target)
         {
             // See partial match threshold to verify what are the rules available for action selection
-            return ((currentInput.Contains(inputWallAhead, CurrentAgent.Parameters.MAX_ACTIVATION))) ? 1.0 : 0.0;
+            return ((currentInput.Contains(inputWallAhead, WALL_AHEAD_ACT_VAL))) ? 1.0 : 0.0;
         }
 
 		private double FixedRuleToWander (ActivationCollection currentInput, Rule target)
 		{
 			// Here we will make the logic to wander - check for low activation
 			// in all inputs.
-			if (currentInput.Contains (inputWallAhead, MIN_ACT_VAL) &&
+			if (currentInput.Contains (inputAllJewelsCollected, MIN_ACT_VAL) &&
+				currentInput.Contains (inputCreatureCanDeliver, MIN_ACT_VAL) &&
+				currentInput.Contains (inputWallAhead, MIN_ACT_VAL) &&
 				currentInput.Contains (inputJewelAhead, MIN_ACT_VAL) &&
 				currentInput.Contains (inputFoodAhead, MIN_ACT_VAL) &&
 				currentInput.Contains (inputJewelAway, MIN_ACT_VAL) &&
@@ -483,7 +513,7 @@ namespace ClarionApp
 				memory.Update (currentSceneInWS3D);
 
 				// Make the perception
-				SensoryInformation si = prepareSensoryInformation();
+				SensoryInformation si = prepareSensoryInformation(currentSceneInWS3D);
 
                 //Perceive the sensory information
                 CurrentAgent.Perceive(si);
@@ -493,6 +523,7 @@ namespace ClarionApp
 
                 // Get the selected action
                 String actionLabel = chosen.LabelAsIComparable.ToString();
+				Console.WriteLine ("Action label: " + actionLabel);
                 CreatureActions actionType = (CreatureActions)Enum.Parse(typeof(CreatureActions), actionLabel, true);
 
                 // Call the output event handler

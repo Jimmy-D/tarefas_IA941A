@@ -8,7 +8,6 @@ namespace ClarionApp
 	{
 		public IList<Thing> memoryJewel = new List<Thing> ();
 		public IList<Thing> memoryFood = new List<Thing> ();
-		public IList<Thing> memoryBrick = new List<Thing> ();
 		public Creature creature { get; set; }
 		public Thing deliverySpot { get; set; }
 
@@ -16,7 +15,6 @@ namespace ClarionApp
 		{
 			UpdateMemoryJewel (currentSceneInWS3D);
 			UpdateMemoryFood (currentSceneInWS3D);
-			UpdateMemoryBrick (currentSceneInWS3D);
 			foreach (var thing in currentSceneInWS3D) {
 				if (thing.isFood()) {
 					if (!memoryFood.Any (t => t.Name == thing.Name)) {
@@ -26,14 +24,8 @@ namespace ClarionApp
 					if (!memoryJewel.Any (t => t.Name == thing.Name)) {
 						memoryJewel.Add (thing);
 					}
-				} else if (thing.isBrick ()) {
-					if (!memoryBrick.Any (t => t.Name == thing.Name)) {
-						memoryBrick.Add (thing);
-					}
 				} else if (thing.isDeliverySpot ()) {
 					deliverySpot = thing;
-				} else if (thing.isCreature ()) {
-					creature = (Creature) thing;
 				}
 			}
 		}
@@ -64,19 +56,6 @@ namespace ClarionApp
 			}
 		}
 
-		private void UpdateMemoryBrick (IList<Thing> listThings)
-		{
-			if (listThings == null) {
-				return;
-			}
-			for (int i = 0; i < memoryBrick.Count; i++) {
-				var newItem = listThings.FirstOrDefault (t => t.Name == memoryBrick [i].Name);
-				if (newItem != null) {
-					memoryBrick [i] = newItem;
-				}
-			}
-		}
-
 		public IList<Thing> GetJewels ()
 		{
 			return memoryJewel;
@@ -85,11 +64,6 @@ namespace ClarionApp
 		public IList<Thing> GetFoods ()
 		{
 			return memoryFood;
-		}
-
-		public IList<Thing> GetBricks ()
-		{
-			return memoryBrick;
 		}
 
 		public IList<Thing> GetFoodsJewels ()
