@@ -13,15 +13,21 @@ using Gtk;
 
 namespace ClarionApp
 {
-    /// <summary>
-    /// Public enum that represents all possibilities of agent actions
-    /// </summary>
-    public enum CreatureActions
-    {
-        DO_NOTHING,
-        ROTATE_CLOCKWISE,
-        GO_AHEAD
-    }
+	/// <summary>
+	/// Public enum that represents all possibilities of agent actions
+	/// </summary>
+	public enum CreatureActions
+	{
+		DO_NOTHING,
+		ROTATE_CLOCKWISE,
+		GO_TO_JEWEL,
+		GO_TO_FOOD,
+		GET_JEWEL,
+		GET_FOOD,
+		WANDER,
+		GO_TO_DELIVER,
+		DELIVER
+	}
 
     public class ClarionAgent
     {
@@ -34,13 +40,29 @@ namespace ClarionApp
         /// Constant that represents that there is at least one wall ahead
         /// </summary>
         private String DIMENSION_WALL_AHEAD = "WallAhead";
+		private String DIMENSION_JEWEL_AHEAD = "JewelAhead";
+		private String DIMENSION_JEWEL_AWAY = "JewelAway";
+		private String DIMENSION_FOOD_AHEAD = "FoodAhead";
+		private String DIMENSION_FOOD_AWAY = "FoodAway";
+		private String DIMENSION_ALL_JEWELS_COLLECTED = "AllJewelsCollected";
+		private String DIMENSION_CREATURE_CAN_DELIVER = "CreatureCanDeliver";
 		double prad = 0;
-        #endregion
 
-        #region Properties
+		private double CREATURE_CAN_DELIVER_ACT_VAL = 1.0;
+		private double ALL_JEWELS_COLLECTED_ACT_VAL = 0.9;
+		private double JEWEL_AHEAD_ACT_VAL = 0.8;
+		private double JEWEL_AWAY_ACT_VAL = 0.7;
+		private double FOOD_AHEAD_ACT_VAL = 0.6;
+		private double FOOD_AWAY_ACT_VAL = 0.5;
+		private double WALL_AHEAD_ACT_VAL = 0.3;
+		private double MIN_ACT_VAL = 0.0;
+		#endregion
+
+		#region Properties
 		public MindViewer mind;
 		String creatureId = String.Empty;
 		String creatureName = String.Empty;
+		private Memory memory;
         #region Simulation
         /// <summary>
         /// If this value is greater than zero, the agent will have a finite number of cognitive cycle. Otherwise, it will have infinite cycles.
@@ -73,22 +95,32 @@ namespace ClarionApp
         /// Perception input to indicates a wall ahead
         /// </summary>
 		private DimensionValuePair inputWallAhead;
-        #endregion
+		private DimensionValuePair inputJewelAhead;
+		private DimensionValuePair inputFoodAhead;
+		private DimensionValuePair inputJewelAway;
+		private DimensionValuePair inputFoodAway;
+		private DimensionValuePair inputAllJewelsCollected;
+		private DimensionValuePair inputCreatureCanDeliver;
+		#endregion
 
-        #region Action Output
-        /// <summary>
-        /// Output action that makes the agent to rotate clockwise
-        /// </summary>
+		#region Action Output
+		/// <summary>
+		/// Output action that makes the agent to rotate clockwise
+		/// </summary>
 		private ExternalActionChunk outputRotateClockwise;
-        /// <summary>
-        /// Output action that makes the agent go ahead
-        /// </summary>
-		private ExternalActionChunk outputGoAhead;
-        #endregion
+		private ExternalActionChunk outputGetJewel;
+		private ExternalActionChunk outputGetFood;
+		private ExternalActionChunk outputGoToJewel;
+		private ExternalActionChunk outputGoToFood;
+		private ExternalActionChunk outputWander;
+		private ExternalActionChunk outputGoToDeliverySpot;
+		private ExternalActionChunk outputDoDelivery;
 
-        #endregion
+		#endregion
 
-        #region Constructor
+		#endregion
+
+		#region Constructor
 		public ClarionAgent(WSProxy nws, String creature_ID, String creature_Name)
         {
 			worldServer = nws;
@@ -99,15 +131,29 @@ namespace ClarionApp
 			creatureId = creature_ID;
 			creatureName = creature_Name;
 
+			memory = new Memory ();
+
             // Initialize Input Information
             inputWallAhead = World.NewDimensionValuePair(SENSOR_VISUAL_DIMENSION, DIMENSION_WALL_AHEAD);
+			inputJewelAhead = World.NewDimensionValuePair (SENSOR_VISUAL_DIMENSION, DIMENSION_JEWEL_AHEAD);
+			inputFoodAhead = World.NewDimensionValuePair (SENSOR_VISUAL_DIMENSION, DIMENSION_FOOD_AHEAD);
+			inputJewelAway = World.NewDimensionValuePair (SENSOR_VISUAL_DIMENSION, DIMENSION_JEWEL_AWAY);
+			inputFoodAway = World.NewDimensionValuePair (SENSOR_VISUAL_DIMENSION, DIMENSION_FOOD_AWAY);
+			inputAllJewelsCollected = World.NewDimensionValuePair (SENSOR_VISUAL_DIMENSION, DIMENSION_ALL_JEWELS_COLLECTED);
+			inputCreatureCanDeliver = World.NewDimensionValuePair (SENSOR_VISUAL_DIMENSION, DIMENSION_CREATURE_CAN_DELIVER);
 
-            // Initialize Output actions
-            outputRotateClockwise = World.NewExternalActionChunk(CreatureActions.ROTATE_CLOCKWISE.ToString());
-            outputGoAhead = World.NewExternalActionChunk(CreatureActions.GO_AHEAD.ToString());
+			// Initialize Output actions
+			outputRotateClockwise = World.NewExternalActionChunk(CreatureActions.ROTATE_CLOCKWISE.ToString());
+			outputGetJewel = World.NewExternalActionChunk (CreatureActions.GET_JEWEL.ToString ());
+			outputGetFood = World.NewExternalActionChunk (CreatureActions.GET_FOOD.ToString ());
+			outputGoToJewel = World.NewExternalActionChunk (CreatureActions.GO_TO_JEWEL.ToString ());
+			outputGoToFood = World.NewExternalActionChunk (CreatureActions.GO_TO_FOOD.ToString ());
+			outputWander = World.NewExternalActionChunk (CreatureActions.WANDER.ToString ());
+			outputGoToDeliverySpot = World.NewExternalActionChunk (CreatureActions.GO_TO_DELIVER.ToString ());
+			outputDoDelivery = World.NewExternalActionChunk (CreatureActions.DELIVER.ToString ());
 
-            //Create thread to simulation
-            runThread = new Thread(CognitiveCycle);
+			//Create thread to simulation
+			runThread = new Thread(CognitiveCycle);
 			Console.WriteLine("Agent started");
         }
         #endregion
@@ -166,6 +212,7 @@ namespace ClarionApp
 		{   Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
 			if (worldServer != null && worldServer.IsConnected)
 			{
+				Console.WriteLine ("\n Action: " + externalAction);
 				switch (externalAction)
 				{
 				case CreatureActions.DO_NOTHING:
@@ -174,8 +221,40 @@ namespace ClarionApp
 				case CreatureActions.ROTATE_CLOCKWISE:
 					worldServer.SendSetAngle(creatureId, 2, -2, 2);
 					break;
-				case CreatureActions.GO_AHEAD:
-					worldServer.SendSetAngle(creatureId, 1, 1, prad);
+				case CreatureActions.GET_JEWEL:
+					Thing jewelToGet = memory.getNearestJewel ();
+					worldServer.SendSackIt (creatureId, jewelToGet.Name);
+					memory.Remove (jewelToGet);
+					break;
+				case CreatureActions.GET_FOOD:
+					Thing foodToGet = memory.getNearestFood ();
+					worldServer.SendEatIt (creatureId, foodToGet.Name);
+					memory.Remove (foodToGet);
+					break;
+				case CreatureActions.GO_TO_JEWEL:
+					Thing jewelToGoTo = memory.getNearestJewel ();
+					worldServer.SendSetAngle (creatureId, 0, 0, prad);
+					worldServer.SendSetGoTo (creatureId, 2, 2, jewelToGoTo.X1, jewelToGoTo.Y1);
+					break;
+				case CreatureActions.GO_TO_FOOD:
+					Thing foodToGoTo = memory.getNearestFood ();
+					worldServer.SendSetAngle (creatureId, 0, 0, prad);
+					worldServer.SendSetGoTo (creatureId, 2, 2, foodToGoTo.X1, foodToGoTo.Y1);
+					break;
+				case CreatureActions.WANDER:
+					worldServer.SendSetAngle (creatureId, 2, -2, 2);
+					break;
+				case CreatureActions.GO_TO_DELIVER:
+					// Send creature to the delivery spot.
+					worldServer.SendSetAngle (creatureId, 0, 0, prad);
+					worldServer.SendSetGoTo (creatureId, 2, 2, memory.deliverySpot.X1, memory.deliverySpot.Y1);
+					break;
+				case CreatureActions.DELIVER:
+					IList<Leaflet> leaflets = memory.creature.getLeaflets ();
+					worldServer.SendDeliver (creatureId, leaflets[0].leafletID.ToString());
+					worldServer.SendDeliver (creatureId, leaflets [1].leafletID.ToString ());
+					worldServer.SendDeliver (creatureId, leaflets [2].leafletID.ToString ());
+					worldServer.SendStopCreature (creatureId);
 					break;
 				default:
 					break;
@@ -212,15 +291,38 @@ namespace ClarionApp
             // Commit this rule to Agent (in the ACS)
             CurrentAgent.Commit(ruleAvoidCollisionWall);
 
-            // Create Colission To Go Ahead
-            SupportCalculator goAheadSupportCalculator = FixedRuleToGoAhead;
-            FixedRule ruleGoAhead = AgentInitializer.InitializeActionRule(CurrentAgent, FixedRule.Factory, outputGoAhead, goAheadSupportCalculator);
-            
-            // Commit this rule to Agent (in the ACS)
-            CurrentAgent.Commit(ruleGoAhead);
+			SupportCalculator wanderSupportCalculator = FixedRuleToWander;
+			FixedRule ruleWander = AgentInitializer.InitializeActionRule (CurrentAgent, FixedRule.Factory, outputWander, wanderSupportCalculator);
+			CurrentAgent.Commit(ruleWander);
 
-            // Disable Rule Refinement
-            CurrentAgent.ACS.Parameters.PERFORM_RER_REFINEMENT = false;
+			SupportCalculator getJewelSupportCalculator = FixedRuleToGetJewel;
+			FixedRule ruleGetJewel = AgentInitializer.InitializeActionRule (CurrentAgent, FixedRule.Factory, outputGetJewel, getJewelSupportCalculator);
+			CurrentAgent.Commit (ruleGetJewel);
+
+			SupportCalculator getFoodSupportCalculator = FixedRuleToGetFood;
+			FixedRule ruleGetFood = AgentInitializer.InitializeActionRule (CurrentAgent, FixedRule.Factory, outputGetFood, getFoodSupportCalculator);
+			CurrentAgent.Commit (ruleGetFood);
+
+			SupportCalculator goToJewelSupportCalculator = FixedRuleToGoToJewel;
+			FixedRule ruleGoToJewel = AgentInitializer.InitializeActionRule (CurrentAgent, FixedRule.Factory, outputGoToJewel, goToJewelSupportCalculator);
+			CurrentAgent.Commit (ruleGoToJewel);
+
+			SupportCalculator goToFoodSupportCalculator = FixedRuleToGoToFood;
+			FixedRule ruleGoToFood = AgentInitializer.InitializeActionRule (CurrentAgent, FixedRule.Factory, outputGoToFood, goToFoodSupportCalculator);
+			CurrentAgent.Commit (ruleGoToFood);
+
+			SupportCalculator goToDeliverySpotSupportCalculator = FixedRuleToGoToDeliverySpot;
+			FixedRule ruleGoToDeliverySpot = AgentInitializer.InitializeActionRule (CurrentAgent, FixedRule.Factory, outputGoToDeliverySpot,
+																				   goToDeliverySpotSupportCalculator);
+			CurrentAgent.Commit (ruleGoToDeliverySpot);
+
+			SupportCalculator deliverSupportCalculator = FixedRuleToDeliver;
+			FixedRule ruleDeliver = AgentInitializer.InitializeActionRule (CurrentAgent, FixedRule.Factory, outputDoDelivery,
+				deliverSupportCalculator);
+			CurrentAgent.Commit (ruleDeliver);
+
+			// Disable Rule Refinement
+			CurrentAgent.ACS.Parameters.PERFORM_RER_REFINEMENT = false;
 
             // The selection type will be probabilistic
             CurrentAgent.ACS.Parameters.LEVEL_SELECTION_METHOD = ActionCenteredSubsystem.LevelSelectionMethods.STOCHASTIC;
@@ -235,28 +337,79 @@ namespace ClarionApp
             CurrentAgent.ACS.Parameters.FIXED_RER_LEVEL_SELECTION_MEASURE = 0;
         }
 
-        /// <summary>
-        /// Make the agent perception. In other words, translate the information that came from sensors to a new type that the agent can understand
-        /// </summary>
-        /// <param name="sensorialInformation">The information that came from server</param>
-        /// <returns>The perceived information</returns>
-		private SensoryInformation prepareSensoryInformation(IList<Thing> listOfThings)
-        {
-            // New sensory information
-            SensoryInformation si = World.NewSensoryInformation(CurrentAgent);
+		/// <summary>
+		/// Make the agent perception. In other words, translate the information that came from sensors to a new type that the agent can understand
+		/// </summary>
+		/// <param name="sensorialInformation">The information that came from server</param>
+		/// <returns>The perceived information</returns>
+		private SensoryInformation prepareSensoryInformation ()
+		{
+			// New sensory information
+			SensoryInformation si = World.NewSensoryInformation (CurrentAgent);
 
-            // Detect if we have a wall ahead
-            Boolean wallAhead = listOfThings.Where(item => (item.CategoryId == Thing.CATEGORY_BRICK && item.DistanceToCreature <= 61)).Any();
-            double wallAheadActivationValue = wallAhead ? CurrentAgent.Parameters.MAX_ACTIVATION : CurrentAgent.Parameters.MIN_ACTIVATION;
-            si.Add(inputWallAhead, wallAheadActivationValue);
+			// Detect if we have a wall ahead
+			//Boolean wallAhead = listOfThings.Where(item => (item.CategoryId == Thing.CATEGORY_BRICK && item.DistanceToCreature <= 61)).Any();
+			//double wallAheadActivationValue = wallAhead ? CurrentAgent.Parameters.MAX_ACTIVATION : CurrentAgent.Parameters.MIN_ACTIVATION;
+			//si.Add(inputWallAhead, wallAheadActivationValue);
 			//Console.WriteLine(sensorialInformation);
-			Creature c = (Creature) listOfThings.Where(item => (item.CategoryId == Thing.CATEGORY_CREATURE)).First();
+			Creature c = memory.creature;
 			int n = 0;
-			foreach(Leaflet l in c.getLeaflets()) {
-				mind.updateLeaflet(n,l);
+			foreach (Leaflet l in c.getLeaflets ()) {
+				mind.updateLeaflet (n, l);
 				n++;
 			}
-            return si;
+
+			double wallAheadActivationValue = MIN_ACT_VAL;
+			double jewelAheadActivationValue = MIN_ACT_VAL;
+			double foodAheadActivationValue = MIN_ACT_VAL;
+			double jewelAwayActivationValue = MIN_ACT_VAL;
+			double foodAwayActivationValue = MIN_ACT_VAL;
+			double allJewelsCollectedActivationValue = MIN_ACT_VAL;
+			double creatureCanDeliverActivationValue = MIN_ACT_VAL;
+
+			Console.WriteLine ("Activations:");
+			foreach (Thing brick in memory.GetBricks ()) {
+				if (brick.DistanceToCreature <= 50) {
+					Console.WriteLine ("\tActivation Avoid Brick");
+					wallAheadActivationValue = WALL_AHEAD_ACT_VAL; 
+				 }
+			}
+
+			foreach (Thing jewel in memory.GetJewels ()) {
+				if (jewel.DistanceToCreature <= 50) {
+					Console.WriteLine ("\tActivation get Jewel");
+					jewelAheadActivationValue = JEWEL_AHEAD_ACT_VAL;
+				}
+			}
+
+			foreach (Thing food in memory.GetFoods ()) {
+				if (food.DistanceToCreature <= 50) {
+					Console.WriteLine ("\tActivation get Food");
+					foodAheadActivationValue = FOOD_AHEAD_ACT_VAL; 
+				}
+			}
+
+			if (memory.GetJewels ().Any ()) {
+				Console.WriteLine ("\tActivation go Jewel");
+				jewelAwayActivationValue = JEWEL_AWAY_ACT_VAL;
+			}
+
+			if (c.getLeaflets ().Where ((l) => l.situation == true).Any()) {
+				Console.WriteLine ("\tActivation go Delivery");
+				allJewelsCollectedActivationValue = ALL_JEWELS_COLLECTED_ACT_VAL;
+			}
+
+			if (memory.GetFoods().Any () && c.Fuel < 400) {
+				Console.WriteLine ("\tActivation Deliver");
+				foodAwayActivationValue = FOOD_AWAY_ACT_VAL;
+			}
+
+			if(memory.deliverySpot != null && 
+			memory.deliverySpot.DistanceToCreature <= 50 && c.getLeaflets ().Where ((l) => l.situation == true).Any ()) {
+				creatureCanDeliverActivationValue = CREATURE_CAN_DELIVER_ACT_VAL;
+			}
+
+			return si;
         }
         #endregion
 
@@ -267,26 +420,70 @@ namespace ClarionApp
             return ((currentInput.Contains(inputWallAhead, CurrentAgent.Parameters.MAX_ACTIVATION))) ? 1.0 : 0.0;
         }
 
-        private double FixedRuleToGoAhead(ActivationCollection currentInput, Rule target)
-        {
-            // Here we will make the logic to go ahead
-            return ((currentInput.Contains(inputWallAhead, CurrentAgent.Parameters.MIN_ACTIVATION))) ? 1.0 : 0.0;
-        }
-        #endregion
+		private double FixedRuleToWander (ActivationCollection currentInput, Rule target)
+		{
+			// Here we will make the logic to wander - check for low activation
+			// in all inputs.
+			if (currentInput.Contains (inputWallAhead, MIN_ACT_VAL) &&
+				currentInput.Contains (inputJewelAhead, MIN_ACT_VAL) &&
+				currentInput.Contains (inputFoodAhead, MIN_ACT_VAL) &&
+				currentInput.Contains (inputJewelAway, MIN_ACT_VAL) &&
+				currentInput.Contains (inputFoodAway, MIN_ACT_VAL)) {
+				return 1.0;
+			} else {
+				return 0.0;
+			}
+		}
 
-        #region Run Thread Method
-        private void CognitiveCycle(object obj)
+		private double FixedRuleToGoToDeliverySpot (ActivationCollection currentInput, Rule target)
+		{
+			// Check if all jewels collected.
+			return ((currentInput.Contains (inputAllJewelsCollected, ALL_JEWELS_COLLECTED_ACT_VAL))) ? 1.0 : 0.0;
+		}
+
+		private double FixedRuleToDeliver (ActivationCollection currentInput, Rule target)
+		{
+			return ((currentInput.Contains (inputCreatureCanDeliver, CREATURE_CAN_DELIVER_ACT_VAL))) ? 1.0 : 0.0;
+		}
+
+		private double FixedRuleToGetJewel (ActivationCollection currentInput, Rule target)
+		{
+			// Here we will make the logic to collect a jewel
+			return ((currentInput.Contains (inputJewelAhead, JEWEL_AHEAD_ACT_VAL))) ? 1.0 : 0.0;
+		}
+
+		private double FixedRuleToGetFood (ActivationCollection currentInput, Rule target)
+		{
+			// Here we will make the logic to eat food
+			return ((currentInput.Contains (inputFoodAhead, FOOD_AHEAD_ACT_VAL))) ? 1.0 : 0.0;
+		}
+
+		private double FixedRuleToGoToJewel (ActivationCollection currentInput, Rule target)
+		{
+			// Here we will make the logic to collect a jewel
+			return ((currentInput.Contains (inputJewelAway, JEWEL_AWAY_ACT_VAL))) ? 1.0 : 0.0;
+		}
+
+		private double FixedRuleToGoToFood (ActivationCollection currentInput, Rule target)
+		{
+			// Here we will make the logic to eat food
+			return ((currentInput.Contains (inputFoodAway, FOOD_AWAY_ACT_VAL))) ? 1.0 : 0.0;
+		}
+		#endregion
+
+		#region Run Thread Method
+		private void CognitiveCycle(object obj)
         {
 
 			Console.WriteLine("Starting Cognitive Cycle ... press CTRL-C to finish !");
-            // Cognitive Cycle starts here getting sensorial information
-            while (CurrentCognitiveCycle != MaxNumberOfCognitiveCycles)
-            {   
+			// Cognitive Cycle starts here getting sensorial information
+			while (CurrentCognitiveCycle != MaxNumberOfCognitiveCycles) {
 				// Get current sensory information                    
-				IList<Thing> currentSceneInWS3D = processSensoryInformation();
+				IList<Thing> currentSceneInWS3D = processSensoryInformation ();
+				memory.Update (currentSceneInWS3D);
 
-                // Make the perception
-                SensoryInformation si = prepareSensoryInformation(currentSceneInWS3D);
+				// Make the perception
+				SensoryInformation si = prepareSensoryInformation();
 
                 //Perceive the sensory information
                 CurrentAgent.Perceive(si);

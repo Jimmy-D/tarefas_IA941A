@@ -29,5 +29,30 @@ namespace ClarionApp.Model
         public double DistanceToCreature { get; set; }
 		public double comX { get; set; }
 		public double comY { get; set; }
-    }
+
+		public bool isCreature ()
+		{
+			return this.CategoryId == CATEGORY_CREATURE;
+		}
+
+		public bool isBrick ()
+		{
+			return this.CategoryId == CATEGORY_BRICK;
+		}
+
+		public bool isFood()
+		{
+			return this.CategoryId == CATEGORY_FOOD || this.CategoryId == categoryPFOOD || this.CategoryId == CATEGORY_NPFOOD;
+		}
+
+		public bool isJewel ()
+		{
+			return this.CategoryId == CATEGORY_JEWEL;
+		}
+
+		public bool isDeliverySpot ()
+		{
+			return this.CategoryId == CATEGORY_DeliverySPOT;
+		}
+	}
 }
