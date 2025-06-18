@@ -22,6 +22,8 @@ public class Environment extends EnvironmentImpl {
     private Thing jewel;
     private List<Thing> thingAhead;
     private Thing leafletJewel;
+    private Thing deliverySpot;
+    private Boolean canDeliver;
     public static String currentAction;   
     
     public Environment() {
@@ -32,6 +34,7 @@ public class Environment extends EnvironmentImpl {
         this.jewel = null;
         this.thingAhead = new ArrayList<>();
         this.leafletJewel = null;
+        this.deliverySpot = null;
         currentAction = "rotate";
     }
 
@@ -47,7 +50,8 @@ public class Environment extends EnvironmentImpl {
             creature = proxy.createCreature(100, 100, 0);
             creature.start();
             System.out.println("Starting the WS3D Resource Generator ... ");
-            World.grow(1);
+            World.grow(2);
+            World.createDeliverySpot(400, 300);
             Thread.sleep(4000);
             creature.updateState();
             System.out.println("DemoLIDA has started...");
@@ -91,6 +95,9 @@ public class Environment extends EnvironmentImpl {
             case "leafletJewel":
                 requestedObject = leafletJewel;
                 break;
+            case "canDeliver":
+                requestedObject = canDeliver;
+                break;
             default:
                 break;
         }
@@ -103,10 +110,12 @@ public class Environment extends EnvironmentImpl {
         food = null;
         jewel = null;
         leafletJewel = null;
+        canDeliver = null;
         thingAhead.clear();
                 
         for (Thing thing : creature.getThingsInVision()) {
-            if (creature.calculateDistanceTo(thing) <= Constants.OFFSET) {
+            if (creature.calculateDistanceTo(thing) <= Constants.OFFSET 
+                    && thing.getCategory() != Constants.categoryDeliverySPOT) {
                 // Identifica o objeto proximo
                 thingAhead.add(thing);
                 break;
@@ -131,9 +140,33 @@ public class Environment extends EnvironmentImpl {
                 
                     // Identifica qualquer tipo de comida
                     food = thing;
+            } else if (thing.getCategory() == Constants.categoryDeliverySPOT) {
+                deliverySpot = thing;
             }
            
         }
+        
+        for (Leaflet leaflet : creature.getLeaflets()) {
+            if (isCompleted(leaflet)) canDeliver = true;
+        }
+    }
+    
+    public boolean isCompleted(Leaflet leaflet) {
+
+        boolean isCompleted = false;
+
+        for (Map.Entry<String, Integer[]> l : leaflet.getItems().entrySet()) {
+            Integer[] jewels = l.getValue();
+
+            if (jewels[0] > jewels[1]) {
+                isCompleted = false;
+                break;
+            } else {
+                isCompleted = true;
+            }
+        }
+
+        return isCompleted;
     }
     
     
@@ -158,7 +191,9 @@ public class Environment extends EnvironmentImpl {
                 case "gotoJewel":
                     if (leafletJewel != null)
                         creature.moveto(4.0, leafletJewel.getX1(), leafletJewel.getY1());
-                    else creature.move(0.0, 0.0, 0.0);
+                    else {
+                        creature.move(0.0, 0.0, 0.0);
+                    }
                     break;                    
                 case "get":
                     creature.move(0.0, 0.0, 0.0);
@@ -173,6 +208,20 @@ public class Environment extends EnvironmentImpl {
                     }
                     this.resetState();
                     break;
+                case "gotoDelivery":
+                    if (canDeliver != null && deliverySpot != null) {
+                        double d = creature.calculateDistanceTo(deliverySpot);
+                        if(d > 70) {
+                            creature.moveto(4.0, deliverySpot.getX1(), deliverySpot.getY1());
+                        } else {
+                            for (Leaflet l : creature.getLeaflets()) {
+                                if(isCompleted(l)) {
+                                    creature.deliverLeaflet(Long.toString(l.getID()));
+                                }                                
+                            }                            
+                        }
+                    } else creature.move(0.0, 0.0, 0.0);
+                    break;  
                 default:creature.move(0.0, 0.0, 0.0);
                     break;
             }

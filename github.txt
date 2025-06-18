@@ -1,4 +1,3 @@
 git clone https://github.com/Jimmy-D/tarefas_IA941A.git
 
-A atividade do Clarion está na pasta tarefa03.
-Rodar "./tarefa03/dist/run.sh"
+A atividade do Lida está na pasta tarefa04.
