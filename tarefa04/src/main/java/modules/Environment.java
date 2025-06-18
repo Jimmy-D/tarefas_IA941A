@@ -22,7 +22,7 @@ public class Environment extends EnvironmentImpl {
     private Thing jewel;
     private List<Thing> thingAhead;
     private Thing leafletJewel;
-    private String currentAction;   
+    public static String currentAction;   
     
     public Environment() {
         this.ticksPerRun = DEFAULT_TICKS_PER_RUN;
@@ -32,7 +32,7 @@ public class Environment extends EnvironmentImpl {
         this.jewel = null;
         this.thingAhead = new ArrayList<>();
         this.leafletJewel = null;
-        this.currentAction = "rotate";
+        currentAction = "rotate";
     }
 
     @Override
