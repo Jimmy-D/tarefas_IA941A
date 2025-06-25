@@ -37,11 +37,13 @@ public class GoToClosestApple extends Codelet {
 	private MemoryContainer legsMO;
 	private int creatureBasicSpeed;
 	private double reachDistance;
+        private double minFuel;
 
-	public GoToClosestApple(int creatureBasicSpeed, int reachDistance) {
+	public GoToClosestApple(int creatureBasicSpeed, int reachDistance, int minFuel) {
 		this.creatureBasicSpeed=creatureBasicSpeed;
 		this.reachDistance=reachDistance;
                 this.name = "GoToClosestApple";
+                this.minFuel = minFuel;
 	}
 
 	@Override
@@ -74,6 +76,7 @@ public class GoToClosestApple extends Codelet {
                         
 			double selfX=(double)cis.get("position.x").getValue();
 			double selfY=(double)cis.get("position.y").getValue();
+                        double fuel = (double)cis.get("fuel").getValue();
 
 			Point2D pApple = new Point();
 			pApple.setLocation(appleX, appleY);
@@ -85,7 +88,7 @@ public class GoToClosestApple extends Codelet {
 			//JSONObject message=new JSONObject();
                         Idea message = Idea.createIdea("message","", Idea.guessType("Property",null,1.0,0.5));
 			try {
-				if(distance>reachDistance){ //Go to it
+				if(distance>reachDistance && fuel < this.minFuel){ //Go to it
                                         message.add(Idea.createIdea("ACTION","GOTO", Idea.guessType("Property",null,1.0,0.5)));
                                         message.add(Idea.createIdea("X",(int)appleX, Idea.guessType("Property",null,1.0,0.5)));
                                         message.add(Idea.createIdea("Y",(int)appleY, Idea.guessType("Property",null,1.0,0.5)));
