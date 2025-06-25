@@ -37,42 +37,41 @@ import ws3dproxy.model.Thing;
 public class ClosestJewelDetector extends Codelet {
 
 	private Memory knownMO;
-	private Memory closestAppleMO;
+	private Memory closestJewelMO;
 	private Memory innerSenseMO;
 	
         private List<Thing> known;
 
 	public ClosestJewelDetector() {
-            this.name = "ClosestAppleDetector";
+            this.name = "ClosestJewelDetector";
 	}
 
 
 	@Override
 	public void accessMemoryObjects() {
-		this.knownMO=(MemoryObject)this.getInput("KNOWN_APPLES");
+		this.knownMO=(MemoryObject)this.getInput("KNOWN_JEWELS");
 		this.innerSenseMO=(MemoryObject)this.getInput("INNER");
-		this.closestAppleMO=(MemoryObject)this.getOutput("CLOSEST_APPLE");	
+		this.closestJewelMO=(MemoryObject)this.getOutput("CLOSEST_JEWEL");	
 	}
 	@Override
 	public void proc() {
-                Thing closest_apple=null;
+                Thing closest_jewel=null;
                 known = Collections.synchronizedList((List<Thing>) knownMO.getI());
                 Idea cis = (Idea) innerSenseMO.getI();
                 synchronized(known) {
 		   if(known.size() != 0){
-			//Iterate over objects in vision, looking for the closest apple
                         CopyOnWriteArrayList<Thing> myknown = new CopyOnWriteArrayList<>(known);
                         for (Thing t : myknown) {
 				String objectName=t.getName();
-				if(objectName.contains("PFood") && !objectName.contains("NPFood")){ //Then, it is an apple
-                                        if(closest_apple == null){    
-                                                closest_apple = t;
+				if(objectName.contains("Jewel")){ 
+                                        if(closest_jewel == null){    
+                                                closest_jewel = t;
 					}
                                         else {
 						double Dnew = calculateDistance(t.getX1(), t.getY1(), (double)cis.get("position.x").getValue(), (double)cis.get("position.y").getValue());
-                                                double Dclosest= calculateDistance(closest_apple.getX1(), closest_apple.getY1(), (double)cis.get("position.x").getValue(), (double)cis.get("position.y").getValue());
+                                                double Dclosest= calculateDistance(closest_jewel.getX1(), closest_jewel.getY1(), (double)cis.get("position.x").getValue(), (double)cis.get("position.y").getValue());
 						if(Dnew<Dclosest){
-                                                        closest_apple = t;
+                                                        closest_jewel = t;
 						}
 					}
 				}
@@ -83,7 +82,7 @@ public class ClosestJewelDetector extends Codelet {
 //                   System.out.println("Closest apple: "+closest_apple.getName()+" known: "+known.size());
 //                else
 //                   System.out.println("Closest apple: null"+" known: "+known.size()); 
-                closestAppleMO.setI(closest_apple);
+                closestJewelMO.setI(closest_jewel);
 	}//end proc
 
 @Override

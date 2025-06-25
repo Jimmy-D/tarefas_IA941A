@@ -37,8 +37,10 @@ import ws3dproxy.model.Thing;
 
 public class Forage extends Codelet {
     
-        private Memory knownMO;
-        private List<Thing> known;
+        private Memory knownApplesMO;
+        private Memory knownJewelsMO;
+        private List<Thing> knownApples;
+        private List<Thing> knownJewels;
         private MemoryContainer legsMO;
 
 
@@ -51,12 +53,13 @@ public class Forage extends Codelet {
 
 	@Override
 	public void proc() {
-            known = (List<Thing>) knownMO.getI();
-            if (known.size() == 0) {
+            knownApples = (List<Thing>) knownApplesMO.getI();
+            knownJewels = (List<Thing>) knownJewelsMO.getI();
+            if (knownApples.size() == 0 && knownJewels.size() == 0) {
 		JSONObject message=new JSONObject();
 			try {
 				message.put("ACTION", "FORAGE");
-                                activation=1.0;
+                                activation=0.6;
 				legsMO.setI(message.toString(),activation,name);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
@@ -71,7 +74,8 @@ public class Forage extends Codelet {
 
 	@Override
 	public void accessMemoryObjects() {
-            knownMO = (MemoryObject)this.getInput("KNOWN_APPLES");
+            knownApplesMO = (MemoryObject)this.getInput("KNOWN_APPLES");
+            knownJewelsMO = (MemoryObject)this.getInput("KNOWN_JEWELS");
             legsMO = (MemoryContainer)this.getOutput("LEGS");
 	}
         

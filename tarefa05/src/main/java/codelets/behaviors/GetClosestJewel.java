@@ -35,48 +35,48 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import ws3dproxy.model.Thing;
 
-public class EatClosestApple extends Codelet {
+public class GetClosestJewel extends Codelet {
 
-	private Memory closestAppleMO;
+	private Memory closestJewelMO;
 	private Memory innerSenseMO;
         private Memory knownMO;
 	private int reachDistance;
 	private Memory handsMO;
-        Thing closestApple;
+        Thing closestJewel;
         Idea cis;
         List<Thing> known;
 
-	public EatClosestApple(int reachDistance) {
+	public GetClosestJewel(int reachDistance) {
                 setTimeStep(50);
 		this.reachDistance=reachDistance;
-                this.name = "EatClosestApple";
+                this.name = "GetClosestJewel";
 	}
 
 	@Override
 	public void accessMemoryObjects() {
-		closestAppleMO=(MemoryObject)this.getInput("CLOSEST_APPLE");
+		closestJewelMO=(MemoryObject)this.getInput("CLOSEST_JEWEL");
 		innerSenseMO=(MemoryObject)this.getInput("INNER");
 		handsMO=(MemoryObject)this.getOutput("HANDS");
-                knownMO = (MemoryObject)this.getOutput("KNOWN_APPLES");
+                knownMO = (MemoryObject)this.getOutput("KNOWN_JEWELS");
 	}
 
 	@Override
 	public void proc() {
-                String appleName="";
-                closestApple = (Thing) closestAppleMO.getI();
+                String jewelName="";
+                closestJewel = (Thing) closestJewelMO.getI();
                 cis = (Idea) innerSenseMO.getI();
                 known = (List<Thing>) knownMO.getI();
 		//Find distance between closest apple and self
 		//If closer than reachDistance, eat the apple
 		
-		if(closestApple != null)
+		if(closestJewel != null)
 		{
-			double appleX=0;
-			double appleY=0;
+			double jewelX=0;
+			double jewelY=0;
 			try {
-				appleX=closestApple.getCenterPosition().getX();
-				appleY=closestApple.getCenterPosition().getY();
-                                appleName = closestApple.getName();
+				jewelX=closestJewel.getCenterPosition().getX();
+				jewelY=closestJewel.getCenterPosition().getY();
+                                jewelName = closestJewel.getName();
                                 
 
 			} catch (Exception e) {
@@ -87,26 +87,26 @@ public class EatClosestApple extends Codelet {
 			double selfX=(double)cis.get("position.x").getValue();
 			double selfY=(double)cis.get("position.y").getValue();
 
-			Point2D pApple = new Point();
-			pApple.setLocation(appleX, appleY);
+			Point2D pJewel = new Point();
+			pJewel.setLocation(jewelX, jewelY);
 
 			Point2D pSelf = new Point();
 			pSelf.setLocation(selfX, selfY);
 
-			double distance = pSelf.distance(pApple);
+			double distance = pSelf.distance(pJewel);
 			JSONObject message=new JSONObject();
 			try {
 				if(distance<=reachDistance){ //eat it						
-					message.put("OBJECT", appleName);
-					message.put("ACTION", "EATIT");
+					message.put("OBJECT", jewelName);
+					message.put("ACTION", "PICKUP");
 					handsMO.setI(message.toString());
                                         activation=1.0;
-//                                    try {
+//                                        try {
 //                                        Thread.sleep(2000);
 //                                    } catch (InterruptedException ex) {
 //                                        Logger.getLogger(EatClosestApple.class.getName()).log(Level.SEVERE, null, ex);
 //                                    }
-                                        DestroyClosestApple();
+                                        DestroyClosestJewel();
 				}else{
 					handsMO.setI("");	//nothing
                                         activation=0.0;
@@ -133,18 +133,18 @@ public class EatClosestApple extends Codelet {
         
         }
         
-        public void DestroyClosestApple() {
+        public void DestroyClosestJewel() {
            int r = -1;
            int i = 0;
            synchronized(known) {
              CopyOnWriteArrayList<Thing> myknown = new CopyOnWriteArrayList<>(known);  
              for (Thing t : known) {
-              if (closestApple != null) 
-                 if (t.getName().equals(closestApple.getName())) r = i;
+              if (closestJewel != null) 
+                 if (t.getName().equals(closestJewel.getName())) r = i;
               i++;
              }   
              if (r != -1) known.remove(r);
-             closestApple = null;
+             closestJewel = null;
            }
         }
 

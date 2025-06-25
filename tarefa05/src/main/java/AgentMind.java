@@ -23,11 +23,15 @@ import br.unicamp.cst.core.entities.Mind;
 import br.unicamp.cst.representation.idea.Idea;
 import codelets.behaviors.EatClosestApple;
 import codelets.behaviors.Forage;
+import codelets.behaviors.GetClosestJewel;
 import codelets.behaviors.GoToClosestApple;
+import codelets.behaviors.GoToClosestJewel;
 import codelets.motor.HandsActionCodelet;
 import codelets.motor.LegsActionCodelet;
 import codelets.perception.AppleDetector;
 import codelets.perception.ClosestAppleDetector;
+import codelets.perception.ClosestJewelDetector;
+import codelets.perception.JewelDetector;
 import codelets.sensors.InnerSense;
 import codelets.sensors.Vision;
 import java.awt.Polygon;
@@ -42,7 +46,7 @@ import ws3dproxy.model.Thing;
 public class AgentMind extends Mind {
     
     private static int creatureBasicSpeed=3;
-    private static int reachDistance=50;
+    private static int reachDistance=100;
     private static int minFuel=400;
     public ArrayList<Codelet> behavioralCodelets = new ArrayList<Codelet>();
     
@@ -65,6 +69,8 @@ public class AgentMind extends Mind {
                 Memory innerSenseMO;
                 Memory closestAppleMO;
                 Memory knownApplesMO;
+                Memory closestJewelMO;
+                Memory knownJewelsMO;
                 
                 //Initialize Memory Objects
                 legsMO=createMemoryContainer("LEGS");
@@ -100,6 +106,13 @@ public class AgentMind extends Mind {
                 List<Thing> knownApples = Collections.synchronizedList(new ArrayList<Thing>());
                 knownApplesMO=createMemoryObject("KNOWN_APPLES", knownApples);
                 registerMemory(knownApplesMO,"Working");
+                
+                Thing closestJewel = null;
+                closestJewelMO=createMemoryObject("CLOSEST_JEWEL", closestJewel);
+                registerMemory(closestJewelMO,"Working");
+                List<Thing> knownJewels = Collections.synchronizedList(new ArrayList<Thing>());
+                knownJewelsMO=createMemoryObject("KNOWN_JEWELS", knownJewels);
+                registerMemory(knownJewelsMO,"Working");
                 
  		// Create Sensor Codelets	
 		Codelet vision=new Vision(env.c);
@@ -156,8 +169,45 @@ public class AgentMind extends Mind {
                 registerCodelet(eatApple,"Behavioral");
                 behavioralCodelets.add(eatApple);
                 
+                ////
+                
+                Codelet jd = new JewelDetector();
+                jd.addInput(visionMO);
+                jd.addOutput(knownJewelsMO);
+                insertCodelet(jd);
+                registerCodelet(jd,"Perception");
+                
+		Codelet closestJewelDetector = new ClosestJewelDetector();
+		closestJewelDetector.addInput(knownJewelsMO);
+		closestJewelDetector.addInput(innerSenseMO);
+		closestJewelDetector.addOutput(closestJewelMO);
+                insertCodelet(closestJewelDetector);
+                registerCodelet(closestJewelDetector,"Perception");
+		
+		// Create Behavior Codelets
+		Codelet goToClosestJewel = new GoToClosestJewel(creatureBasicSpeed,reachDistance);
+		goToClosestJewel.addInput(closestJewelMO);
+		goToClosestJewel.addInput(innerSenseMO);
+		goToClosestJewel.addOutput(legsMO);
+                insertCodelet(goToClosestJewel);
+                registerCodelet(goToClosestJewel,"Behavioral");
+                
+                behavioralCodelets.add(goToClosestJewel);
+		
+		Codelet getJewel=new GetClosestJewel(reachDistance);
+		getJewel.addInput(closestJewelMO);
+		getJewel.addInput(innerSenseMO);
+		getJewel.addOutput(handsMO);
+                getJewel.addOutput(knownJewelsMO);
+                insertCodelet(getJewel);
+                registerCodelet(getJewel,"Behavioral");
+                behavioralCodelets.add(getJewel);
+                
+                ////
+                
                 Codelet forage=new Forage();
 		forage.addInput(knownApplesMO);
+                forage.addInput(knownJewelsMO);
                 forage.addOutput(legsMO);
                 insertCodelet(forage);
                 registerCodelet(forage,"Behavioral");
