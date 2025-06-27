@@ -73,7 +73,6 @@ public class LegsActionCodelet extends Codelet{
                                     int x=0,y=0;
                                     String action=command.getString("ACTION");
                                     if(action.equals("FORAGE")){
-                                               if (!comm.equals(previousLegsAction)) { 
                                                //if (!comm.equals(previousLegsAction)) 
                                                     log.info("Sending Forage command to agent");
                                                 try {  
@@ -81,7 +80,6 @@ public class LegsActionCodelet extends Codelet{
                                                 } catch (Exception e) {
                                                     e.printStackTrace();
                                                 }
-                                               } 
 					}
                                     else if(action.equals("GOTO")){
                                         if (!comm.equals(previousLegsAction)) {

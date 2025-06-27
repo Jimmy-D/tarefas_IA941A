@@ -55,11 +55,11 @@ public class Forage extends Codelet {
 	public void proc() {
             knownApples = (List<Thing>) knownApplesMO.getI();
             knownJewels = (List<Thing>) knownJewelsMO.getI();
-            if (knownApples.size() == 0 && knownJewels.size() == 0) {
+            if (knownApples.size() == 0 || knownJewels.size() == 0) {
 		JSONObject message=new JSONObject();
 			try {
 				message.put("ACTION", "FORAGE");
-                                activation=0.6;
+                                activation=0.4;
 				legsMO.setI(message.toString(),activation,name);
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block

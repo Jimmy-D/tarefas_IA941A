@@ -88,28 +88,23 @@ public class GoToClosestApple extends Codelet {
 			//JSONObject message=new JSONObject();
                         Idea message = Idea.createIdea("goToClosestApple","", Idea.guessType("Property",null,1.0,0.5));
 			try {
-				if(distance>reachDistance && fuel < this.minFuel){ //Go to it
-                                        message.add(Idea.createIdea("ACTION","GOTO", Idea.guessType("Property",null,1.0,0.5)));
-                                        message.add(Idea.createIdea("X",(int)appleX, Idea.guessType("Property",null,1.0,0.5)));
-                                        message.add(Idea.createIdea("Y",(int)appleY, Idea.guessType("Property",null,1.0,0.5)));
-                                        message.add(Idea.createIdea("SPEED",creatureBasicSpeed, Idea.guessType("Property",null,1.0,0.5)));
-                                        activation=1.0;
-
-				} else if(distance>reachDistance && fuel >= this.minFuel){
-                                        message.add(Idea.createIdea("ACTION","GOTO", Idea.guessType("Property",null,1.0,0.5)));
-                                        message.add(Idea.createIdea("X",(int)appleX, Idea.guessType("Property",null,1.0,0.5)));
-                                        message.add(Idea.createIdea("Y",(int)appleY, Idea.guessType("Property",null,1.0,0.5)));
-                                        message.add(Idea.createIdea("SPEED",creatureBasicSpeed, Idea.guessType("Property",null,1.0,0.5)));
-                                        activation=0.5;
-                                } else{//Stop
+				if(distance>reachDistance){
+                                    message.add(Idea.createIdea("ACTION","GOTO", Idea.guessType("Property",null,1.0,0.5)));
+                                    message.add(Idea.createIdea("X",(int)appleX, Idea.guessType("Property",null,1.0,0.5)));
+                                    message.add(Idea.createIdea("Y",(int)appleY, Idea.guessType("Property",null,1.0,0.5)));
+                                    message.add(Idea.createIdea("SPEED",creatureBasicSpeed, Idea.guessType("Property",null,1.0,0.5)));
+                                    if(fuel < this.minFuel) {
+                                        activation=0.9;
+                                    } else {
+                                        activation=0.7;
+                                    }
+				} else{//Stop
                                         message.add(Idea.createIdea("ACTION","GOTO", Idea.guessType("Property",null,1.0,0.5)));
                                         message.add(Idea.createIdea("X",(int)appleX, Idea.guessType("Property",null,1.0,0.5)));
                                         message.add(Idea.createIdea("Y",(int)appleY, Idea.guessType("Property",null,1.0,0.5)));
                                         message.add(Idea.createIdea("SPEED",0, Idea.guessType("Property",null,1.0,0.5)));
-                                        activation=0.0;
+                                        activation=0.6;
 				}
-                                System.out.println("Closest Apple");
-                                System.out.println(message.toStringFull());
 				legsMO.setI(toJson(message),activation,name);
 			} catch (JSONException e) {
 				e.printStackTrace();

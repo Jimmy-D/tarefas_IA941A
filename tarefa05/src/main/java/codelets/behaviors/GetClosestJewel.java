@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import ws3dproxy.model.Creature;
 import ws3dproxy.model.Thing;
 
 public class GetClosestJewel extends Codelet {
@@ -41,22 +42,22 @@ public class GetClosestJewel extends Codelet {
 	private Memory innerSenseMO;
         private Memory knownMO;
 	private int reachDistance;
-	private Memory handsMO;
         Thing closestJewel;
         Idea cis;
         List<Thing> known;
+        Creature c;
 
-	public GetClosestJewel(int reachDistance) {
+	public GetClosestJewel(int reachDistance, Creature nc) {
                 setTimeStep(50);
 		this.reachDistance=reachDistance;
                 this.name = "GetClosestJewel";
+                this.c = nc;
 	}
 
 	@Override
 	public void accessMemoryObjects() {
 		closestJewelMO=(MemoryObject)this.getInput("CLOSEST_JEWEL");
 		innerSenseMO=(MemoryObject)this.getInput("INNER");
-		handsMO=(MemoryObject)this.getOutput("HANDS");
                 knownMO = (MemoryObject)this.getOutput("KNOWN_JEWELS");
 	}
 
@@ -94,22 +95,20 @@ public class GetClosestJewel extends Codelet {
 			pSelf.setLocation(selfX, selfY);
 
 			double distance = pSelf.distance(pJewel);
-			JSONObject message=new JSONObject();
 			try {
 				if(distance<=reachDistance){ //eat it						
-					message.put("OBJECT", jewelName);
-					message.put("ACTION", "PICKUP");
-					handsMO.setI(message.toString());
-                                        activation=1.0;
+					try {
+                                                 c.putInSack(jewelName);
+                                                 DestroyClosestJewel();
+                                                } catch (Exception e) {
+                                                    
+                                                } 
 //                                        try {
 //                                        Thread.sleep(2000);
 //                                    } catch (InterruptedException ex) {
 //                                        Logger.getLogger(EatClosestApple.class.getName()).log(Level.SEVERE, null, ex);
 //                                    }
-                                        DestroyClosestJewel();
-				}else{
-					handsMO.setI("");	//nothing
-                                        activation=0.0;
+                                        
 				}
 				
 //				System.out.println(message);
@@ -117,9 +116,6 @@ public class GetClosestJewel extends Codelet {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}else{
-			handsMO.setI("");	//nothing
-                        activation=0.0;
 		}
         //System.out.println("Before: "+known.size()+ " "+known);
         

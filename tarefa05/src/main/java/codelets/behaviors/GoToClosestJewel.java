@@ -82,7 +82,7 @@ public class GoToClosestJewel extends Codelet {
 			//JSONObject message=new JSONObject();
                         Idea message = Idea.createIdea("goToClosestJewel","", Idea.guessType("Property",null,1.0,0.5));
 			try {
-				if(distance>reachDistance){ //Go to it
+				if(distance>=reachDistance){ //Go to it
                                         message.add(Idea.createIdea("ACTION","GOTO", Idea.guessType("Property",null,1.0,0.5)));
                                         message.add(Idea.createIdea("X",(int)jewelX, Idea.guessType("Property",null,1.0,0.5)));
                                         message.add(Idea.createIdea("Y",(int)jewelY, Idea.guessType("Property",null,1.0,0.5)));
@@ -94,10 +94,8 @@ public class GoToClosestJewel extends Codelet {
                                         message.add(Idea.createIdea("X",(int)jewelX, Idea.guessType("Property",null,1.0,0.5)));
                                         message.add(Idea.createIdea("Y",(int)jewelY, Idea.guessType("Property",null,1.0,0.5)));
                                         message.add(Idea.createIdea("SPEED",0, Idea.guessType("Property",null,1.0,0.5)));
-                                        activation=0.0;
+                                        activation=0.5;
 				}
-                                System.out.println("Closest Jewel");
-                                System.out.println(message.toStringFull());
 				legsMO.setI(toJson(message),activation,name);
 			} catch (JSONException e) {
 				e.printStackTrace();
