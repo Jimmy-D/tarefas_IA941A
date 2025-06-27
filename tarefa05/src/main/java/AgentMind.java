@@ -21,11 +21,13 @@ import br.unicamp.cst.core.entities.Codelet;
 import br.unicamp.cst.core.entities.Memory;
 import br.unicamp.cst.core.entities.Mind;
 import br.unicamp.cst.representation.idea.Idea;
+import codelets.behaviors.DeliverLeaflets;
 import codelets.behaviors.EatClosestApple;
 import codelets.behaviors.Forage;
 import codelets.behaviors.GetClosestJewel;
 import codelets.behaviors.GoToClosestApple;
 import codelets.behaviors.GoToClosestJewel;
+import codelets.behaviors.GoToDeliverySpot;
 import codelets.motor.HandsActionCodelet;
 import codelets.motor.LegsActionCodelet;
 import codelets.perception.AppleDetector;
@@ -84,6 +86,7 @@ public class AgentMind extends Mind {
                 Idea cis = Idea.createIdea("cis","", Idea.guessType("AbstractObject",null,1.0,0.5));
                 cis.add(Idea.createIdea("cis.pitch", 0D, Idea.guessType("Property", null,1.0,0.5)));
                 cis.add(Idea.createIdea("cis.fuel", 0D, Idea.guessType("Property", null,1.0,0.5)));
+                cis.add(Idea.createIdea("cis.completed", 0D, Idea.guessType("Property", null,1.0,0.5)));
                 Idea position = Idea.createIdea("cis.position","", Idea.guessType("Property",null,1.0,0.5));
                 position.add(Idea.createIdea("cis.position.x",0D,Idea.guessType("QualityDimension",null,1.0,0.5)));
                 position.add(Idea.createIdea("cis.position.y",0D,Idea.guessType("QualityDimension",null,1.0,0.5)));
@@ -193,6 +196,14 @@ public class AgentMind extends Mind {
                 registerCodelet(goToClosestJewel,"Behavioral");
                 
                 behavioralCodelets.add(goToClosestJewel);
+                
+                Codelet goToDeliverySpot = new GoToDeliverySpot(creatureBasicSpeed,reachDistance);
+		goToDeliverySpot.addInput(innerSenseMO);
+		goToDeliverySpot.addOutput(legsMO);
+                insertCodelet(goToDeliverySpot);
+                registerCodelet(goToDeliverySpot,"Behavioral");
+                
+                behavioralCodelets.add(goToDeliverySpot);
 		
 		Codelet getJewel=new GetClosestJewel(reachDistance, env.c);
 		getJewel.addInput(closestJewelMO);
@@ -201,6 +212,12 @@ public class AgentMind extends Mind {
                 insertCodelet(getJewel);
                 registerCodelet(getJewel,"Behavioral");
                 behavioralCodelets.add(getJewel);
+                
+                Codelet deliverLeaflets=new DeliverLeaflets(reachDistance, env.c);
+		deliverLeaflets.addInput(innerSenseMO);
+                insertCodelet(deliverLeaflets);
+                registerCodelet(deliverLeaflets,"Behavioral");
+                behavioralCodelets.add(deliverLeaflets);
                 
                 ////
                 

@@ -44,6 +44,7 @@ public final class Environment {
              World.createFood(0, 350, 75);
              World.createFood(0, 100, 220);
              World.createFood(0, 250, 210);
+             World.createDeliverySpot(400, 300);
              c = proxy.createCreature(100,450,0,0);
              c.start();
              grow(w,7);

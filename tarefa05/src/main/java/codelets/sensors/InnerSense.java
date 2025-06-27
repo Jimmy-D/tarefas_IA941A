@@ -27,6 +27,7 @@ import java.awt.Polygon;
 import java.util.ArrayList;
 import java.util.List;
 import ws3dproxy.model.Creature;
+import ws3dproxy.model.Leaflet;
 
 
 /**
@@ -56,6 +57,14 @@ public class InnerSense extends Codelet {
              cis.get("position.y").setValue(c.getPosition().getY());
              cis.get("pitch").setValue(c.getPitch());
              cis.get("fuel").setValue(c.getFuel());
+             List<Leaflet> leaflets = c.getLeaflets();
+             double completed = 0;
+             for (Leaflet l : leaflets) {
+                 if(l.getSituation() == 1)
+                    completed = 1;
+             }
+             cis.get("completed").setValue(completed);
+             System.out.println("COMPLETED  " + completed);
              Polygon pol = c.getFOV();
              Idea poli = cis.get("FOV");
              poli.get("bounds.x").setValue(pol.getBounds().getX());
